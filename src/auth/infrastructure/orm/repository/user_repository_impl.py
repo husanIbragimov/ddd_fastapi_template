@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.domain.entities import UserEntity
+from auth.domain.entity.user_entity import UserEntity
 from auth.domain.repositories import UserRepository
 from auth.infrastructure.mappers import user_model_to_entity, user_entity_to_model
 from auth.infrastructure.orm.models import UserModel

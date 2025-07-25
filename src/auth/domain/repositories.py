@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Optional
+from uuid import UUID
 
 from pydantic import EmailStr
 
-from .entities import UserEntity
-from uuid import UUID
+from auth.domain.entity import UserEntity
+
 
 class UserRepository(ABC):
     @abstractmethod
