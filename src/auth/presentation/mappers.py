@@ -1,5 +1,5 @@
 from auth.application.dto.auth_dto import UserRegisterDTO, UserLoginDTO
-from auth.presentation.handlers.schema.request_models import SignUpRequest, SignInRequest
+from auth.presentation.handlers.schema.auth_schema import SignUpRequest, SignInRequest
 
 
 def user_signup_req_to_dto(user_req: SignUpRequest) -> UserRegisterDTO:
