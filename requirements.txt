@@ -24,3 +24,4 @@ passlib[bcrypt]
 pyjwt==2.10.1
 greenlet==3.2.3
 environs==14.2.0
+psycopg2-binary==2.9.10

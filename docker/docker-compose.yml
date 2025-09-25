@@ -7,7 +7,6 @@ services:
     container_name: fastapi_app
     command: >
       /bin/sh -c "while ! nc -z postgres 5432; do sleep 1; done;
-                  alembic -c alembic.ini &&
                   alembic upgrade head &&
                   uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4"
     ports:

@@ -13,8 +13,8 @@ env.read_env(f"{BASE_DIR}/env/.env")
 
 class Settings(BaseSettings):
     SECRET_KEY: str = env.str("SECRET_KEY", "secret")
-    TITLE: str = "NovERP Auth service"
-    DESCRIPTION: str = "NovERP Auth service"
+    TITLE: str = "Auth service"
+    DESCRIPTION: str = "Auth service"
     OAUTH_SECRET_KEY: str = "my_dev_secret"
     DB_HOST: str = env.str("POSTGRES_HOST")
     DB_USER: str = env.str("POSTGRES_USER")

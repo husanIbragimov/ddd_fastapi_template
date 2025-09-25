@@ -30,7 +30,3 @@ async_session_factory = async_sessionmaker(
 async def get_db_session() -> AsyncGenerator[AsyncSession | Any, Any]:
     async with async_session_factory() as session:
         yield session
-
-
-# === Declarative base for models ===
-Base = declarative_base()
