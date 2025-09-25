@@ -75,7 +75,6 @@ docs/_build/
 /.pnp
 .pnp.js
 .env
-env/
 ENV/
 env.bak/
 prod_env/
