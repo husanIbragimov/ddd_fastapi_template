@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
+from core.response.exception_response import ExceptionResponse
+
 
 class UserRegisterDTO(BaseModel):
     first_name: str
@@ -17,10 +19,17 @@ class UserRegisterDTO(BaseModel):
 
     def validate_password(self):
         if self.hashed_password != self.confirmed_password:
-            raise ValueError("Passwords do not match")
+            raise ExceptionResponse(
+                status_code=400,
+                response_code=None,
+                detail="Passwords do not match"
+            )
         if len(self.hashed_password) < 8:
-            raise ValueError("Password must be at least 8 characters long")
-        return self.hashed_password
+            raise ExceptionResponse(
+                status_code=400,
+                response_code=None,
+                detail="Password must be at least 8 characters long"
+            )
 
 
 class UserLoginDTO(BaseModel):

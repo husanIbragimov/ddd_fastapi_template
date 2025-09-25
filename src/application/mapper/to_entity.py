@@ -6,7 +6,7 @@ from infrastructure.security.jwt_auth_service import hash_password
 
 
 def to_entity(dto: UserRegisterDTO) -> UserEntity:
-    hashed_pw = hash_password(dto.validate_password())
+    hashed_pw = hash_password(dto.hashed_password)
 
     return UserEntity(
         uuid=uuid.uuid4(),

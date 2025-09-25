@@ -1,7 +1,9 @@
+from fastapi import HTTPException
+
 from core.response.response_code import ResponseCode
 
 
-class ExceptionResponse(Exception):
+class ExceptionResponse(HTTPException):
     def __init__(self, status_code, response_code: ResponseCode | None, detail=None, data=None):
         data = {
             "status": status_code,
@@ -11,6 +13,6 @@ class ExceptionResponse(Exception):
             "error": detail,
             "data": data,
         }
-        super().__init__()
+        super().__init__(status_code=status_code, detail=data)
         self.detail = data
         self.status_code = status_code
