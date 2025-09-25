@@ -7,16 +7,14 @@ services:
     container_name: fastapi_app
     command: >
       /bin/sh -c "while ! nc -z postgres 5432; do sleep 1; done;
-                  alembic upgrade head &&
-                  uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4"
+                  uvicorn main:app --reload --host 0.0.0.0 --port 8000 --workers 4"
     ports:
       - "8000:8000"
     volumes:
-      - ./src:/app/src
+      - ../src:/app/src
+      - ../env/.env:/app/env/.env
     env_file:
       - ../env/.env
-    environment:
-      - PYTHONPATH=/app/src
     depends_on:
       - postgres
 

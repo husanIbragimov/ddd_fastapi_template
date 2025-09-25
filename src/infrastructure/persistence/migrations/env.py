@@ -13,7 +13,6 @@ if config.config_file_name is not None:
 
 # metadata (migration uchun)
 target_metadata = BaseModel.metadata
-print(target_metadata)
 
 # URL ni async emas, balki sync qilamiz
 def get_sync_url():

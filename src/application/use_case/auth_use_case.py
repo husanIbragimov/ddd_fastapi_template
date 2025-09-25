@@ -1,7 +1,7 @@
 from application.dto.auth_dto import UserRegisterDTO, UserLoginDTO, AuthTokenOutputDTO
 from application.mapper.to_entity import to_entity
 from core.response.exception_response import ExceptionResponse
-from domain.repositories import UserRepository
+from domain.repository.user_repository import UserRepository
 from infrastructure.security.jwt_auth_service import verify_password, create_access_token
 
 

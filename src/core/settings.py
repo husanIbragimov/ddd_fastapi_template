@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings
 
 BASE_DIR: Path = Path(__file__).parent.parent.parent.resolve()
 
+print(BASE_DIR)
 env = Env()
 env.read_env(f"{BASE_DIR}/env/.env")
 
@@ -74,3 +75,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+print("settings.DB_PORT", settings.db_url)

@@ -161,3 +161,4 @@ node_modules/
 !.yarn/releases
 /.volumes/
 /docker/.volumes/
+/env/.env

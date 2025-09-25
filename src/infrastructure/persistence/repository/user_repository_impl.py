@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entity.user_entity import UserEntity
-from domain.repositories import UserRepository
+from domain.repository.user_repository import UserRepository
 from infrastructure.mappers import user_model_to_entity, user_entity_to_model
 from infrastructure.persistence.models import UserModel
 
