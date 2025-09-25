@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings
 BASE_DIR: Path = Path(__file__).parent.parent.parent.resolve()
 
 env = Env()
-env.read_env(f"{BASE_DIR}/.env")
+env.read_env(f"{BASE_DIR}/env/.env")
 
 
 class Settings(BaseSettings):

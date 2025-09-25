@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "auth"
 version = "0.1.0"
 description = "Authentication service"
-authors = [{ name = "Your Name", email = "you@example.com" }]
+authors = [{ name = "Khusan Ibragimov", email = "husandev@mail.ru" }]
 dependencies = []
 
 [tool.setuptools]

@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import EmailStr
 
-from auth.domain.entity import UserEntity
+from domain.entity import UserEntity
 
 
 class UserRepository(ABC):

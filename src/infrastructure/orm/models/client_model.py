@@ -4,7 +4,7 @@ from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from auth.domain.entity.enum.client_type import ClientTypeEnum
+from domain.entity.enum.client_type import ClientTypeEnum
 from .base_model import BaseModel
 
 

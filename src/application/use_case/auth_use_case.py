@@ -1,7 +1,7 @@
-from auth.application.dto.auth_dto import UserRegisterDTO, UserLoginDTO, AuthTokenOutputDTO
-from auth.application.mapper.to_entity import to_entity
-from auth.domain.repositories import UserRepository
-from auth.infrastructure.security.jwt_auth_service import hash_password, verify_password, create_access_token
+from application.dto.auth_dto import UserRegisterDTO, UserLoginDTO, AuthTokenOutputDTO
+from application.mapper.to_entity import to_entity
+from domain.repositories import UserRepository
+from infrastructure.security.jwt_auth_service import verify_password, create_access_token
 
 
 class SignUpUseCase:

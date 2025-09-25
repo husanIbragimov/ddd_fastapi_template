@@ -1,5 +1,5 @@
 from .orm.models import UserModel
-from auth.domain.entity.user_entity import UserEntity
+from domain.entity.user_entity import UserEntity
 
 
 def user_model_to_entity(user: UserModel) -> UserEntity:

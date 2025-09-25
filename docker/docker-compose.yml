@@ -1,6 +1,9 @@
 services:
+
   web:
-    build: .
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
     container_name: fastapi_app
     command: >
       /bin/sh -c "while ! nc -z postgres 5432; do sleep 1; done;
@@ -11,7 +14,7 @@ services:
     volumes:
       - ./src:/app/src
     env_file:
-      - .env
+      - ../env/.env
     environment:
       - PYTHONPATH=/app/src
     depends_on:
@@ -21,7 +24,7 @@ services:
     image: postgres:17.0
     container_name: fastapi_db
     env_file:
-      - .env
+      - ../env/.env
     ports:
       - "5433:5432"
     volumes:

@@ -1,8 +1,8 @@
 import uuid
 
-from auth.application.dto.auth_dto import UserRegisterDTO
-from auth.domain.entity.user_entity import UserEntity
-from auth.infrastructure.security.jwt_auth_service import hash_password
+from application.dto.auth_dto import UserRegisterDTO
+from domain.entity.user_entity import UserEntity
+from infrastructure.security.jwt_auth_service import hash_password
 
 
 def to_entity(dto: UserRegisterDTO) -> UserEntity:
