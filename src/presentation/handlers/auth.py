@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.use_case import SignUpUseCase, SignInUseCase
-from infrastructure.orm.db import get_db_session
-from infrastructure.orm.repository.user_repository_impl import SQLAlchemyUserRepository
+from infrastructure.persistence.db import get_db_session
+from infrastructure.persistence.repository.user_repository_impl import SQLAlchemyUserRepository
 from presentation.handlers.schema.auth_schema import SignUpRequest, SignInRequest, AuthTokenResponse
 from presentation.mappers import user_signup_req_to_dto, user_signin_req_to_dto
 

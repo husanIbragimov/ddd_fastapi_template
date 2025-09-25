@@ -1,4 +1,4 @@
-from .orm.models import UserModel
+from .persistence.models import UserModel
 from domain.entity.user_entity import UserEntity
 
 

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from domain.entity.user_entity import UserEntity
 from domain.repositories import UserRepository
 from infrastructure.mappers import user_model_to_entity, user_entity_to_model
-from infrastructure.orm.models import UserModel
+from infrastructure.persistence.models import UserModel
 
 
 class SQLAlchemyUserRepository(UserRepository):
