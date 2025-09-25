@@ -4,6 +4,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.response.exception_response import ExceptionResponse
+from domain.entity.paging_entity import PagingEntity
 from domain.entity.user_entity import UserEntity
 from domain.repository.user_repository import UserRepository
 from infrastructure.mappers import user_model_to_entity, user_entity_to_model
@@ -11,9 +13,14 @@ from infrastructure.persistence.models import UserModel
 
 
 class SQLAlchemyUserRepository(UserRepository):
-
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def update(self, user: UserEntity) -> None:
+        pass
+
+    async def list(self, skip: int = 0, limit: int = 10) -> PagingEntity[UserEntity]:
+        pass
 
     async def get_by_email(self, email: str) -> Optional[UserEntity]:
         return await self._get_by_filter(UserModel.email == email)
@@ -30,6 +37,13 @@ class SQLAlchemyUserRepository(UserRepository):
         return user_model_to_entity(user) if user else None
 
     async def save(self, user: UserEntity) -> None:
+        if await self._get_by_filter(UserModel.email == user.email):
+            raise ExceptionResponse(
+                response_code=None,
+                status_code=400,
+                detail=f"User with email {user.email} already exists."
+            )
+
         model = user_entity_to_model(user)
         self.db.add(model)
         await self.db.commit()

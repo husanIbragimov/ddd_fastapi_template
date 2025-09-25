@@ -9,7 +9,7 @@ class SignUpUseCase:
     def __init__(self, repo: UserRepository):
         self.repo = repo
 
-    async def execute(self, dto: UserRegisterDTO) -> (AuthTokenOutputDTO, ExceptionResponse):
+    async def execute(self, dto: UserRegisterDTO) -> AuthTokenOutputDTO:
         dto.validate_password()
         if await self.repo.get_by_email(dto.email):
             raise ExceptionResponse(
@@ -22,7 +22,7 @@ class SignUpUseCase:
 
         await self.repo.save(user)
         token = create_access_token({"sub": str(user.uuid)})
-        return AuthTokenOutputDTO(access_token=token), None
+        return AuthTokenOutputDTO(access_token=token)
 
 
 class SignInUseCase:

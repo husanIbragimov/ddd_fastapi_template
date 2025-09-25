@@ -9,9 +9,10 @@ from core.response.exception_response import ExceptionResponse
 class UserRegisterDTO(BaseModel):
     first_name: str
     last_name: Optional[str] = None
-    passport_series: str
-    passport_number: str
+    passport_series: Optional[str] = None
+    passport_number: Optional[str] = None
     phone_number: str
+    username: str
     email: EmailStr
     hashed_password: str
     confirmed_password: str

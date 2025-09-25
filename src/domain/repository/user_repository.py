@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import EmailStr
 
 from domain.entity import UserEntity
+from domain.entity.paging_entity import PagingEntity
 
 
 class UserRepository(ABC):
@@ -20,7 +21,11 @@ class UserRepository(ABC):
     async def save(self, user: UserEntity) -> None:
         pass
 
-class TokenRepository(ABC):
     @abstractmethod
-    async def generate_token(self, user: UserEntity) -> str:
+    async def update(self, user: UserEntity) -> None:
         pass
+
+    @abstractmethod
+    async def list(self, skip: int = 0, limit: int = 10) -> PagingEntity[UserEntity]:
+        pass
+
