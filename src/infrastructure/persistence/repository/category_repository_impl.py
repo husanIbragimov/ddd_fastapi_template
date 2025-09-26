@@ -1,28 +1,42 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from injector import inject
+from sqlalchemy import func, select
 
 from domain.entity.category_entity import CategoryEntity
 from domain.entity.paging_entity import PagingEntity
 from domain.repository.category_repository import CategoryRepository
-from infrastructure.persistence.mappers.category_entity_to_model import category_entity_to_model
+from infrastructure.persistence.db_session import DatabaseSession
+from infrastructure.persistence.mappers import category_entity_to_model, category_model_to_entity
 from infrastructure.persistence.models import CategoryModel
 
 
 class CategoryRepositoryImpl(CategoryRepository):
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: DatabaseSession):
         self.db = db
 
+    @inject
     async def create(self, data: CategoryEntity) -> CategoryModel:
         category_mapper = category_entity_to_model(data)
-        self.db.add(category_mapper)
-        await self.db.commit()
-        await self.db.refresh(category_mapper)
-        return category_mapper
+        async with self.db.session_scope() as session:
+            session.add(category_mapper)
+            await session.commit()
+            return category_mapper
 
-
-
+    @inject
     async def list(self, skip: int = 0, limit: int = 10) -> PagingEntity[CategoryEntity]:
-        pass
+        async with self.db.session_scope() as session:
+            result = await session.execute(
+                CategoryModel.__table__.select().offset(skip).limit(limit)
+            )
+            items = result.scalars().all()
+            total = await session.execute(
+                select(func.count()).select_from(CategoryModel)
+            )
+            total_count = total.scalar_one()
+            return PagingEntity[CategoryEntity](page=skip, size=limit, total=total_count, items=items)
 
+    @inject
     async def get_by_pk(self, pk: int) -> CategoryEntity | None:
-        pass
+        async with self.db.session_scope() as session:
+            result = await session.get(CategoryModel, pk)
+            to_entity = category_model_to_entity(result)
+            return to_entity

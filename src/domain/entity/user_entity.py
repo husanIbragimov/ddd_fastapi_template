@@ -7,9 +7,9 @@ from uuid import UUID
 class UserEntity:
     uuid: UUID
     first_name: str
-    last_name: str
+    last_name: str | None
     username: str
     phone_number: str
     email: str
     date_joined: datetime
-    hashed_password: str
+    hashed_password: str | None = None

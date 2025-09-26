@@ -1,8 +1,8 @@
 from application.dto.auth_dto import UserRegisterDTO, UserLoginDTO
-from presentation.handlers.schema.auth_schema import SignUpRequest, SignInRequest
+from presentation.routers.auth.schema.auth_schema import SignUpRequest, SignInRequest
 
 
-def user_signup_req_to_dto(user_req: SignUpRequest) -> UserRegisterDTO:
+def signup_req_to_dto(user_req: SignUpRequest) -> UserRegisterDTO:
     return UserRegisterDTO(
         first_name=user_req.first_name,
         last_name=user_req.last_name,
@@ -14,7 +14,7 @@ def user_signup_req_to_dto(user_req: SignUpRequest) -> UserRegisterDTO:
     )
 
 
-def user_signin_req_to_dto(user_req: SignInRequest) -> UserLoginDTO:
+def signin_req_to_dto(user_req: SignInRequest) -> UserLoginDTO:
     return UserLoginDTO(
         email=user_req.email,
         password=user_req.password

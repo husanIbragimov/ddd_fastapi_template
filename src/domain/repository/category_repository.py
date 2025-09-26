@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
+
 from domain.entity.category_entity import CategoryEntity
 from domain.entity.paging_entity import PagingEntity
 
 
 class CategoryRepository(ABC):
     @abstractmethod
-    async def create(self, data: CategoryEntity) -> None:
+    async def create(self, data: CategoryEntity) -> CategoryEntity | None:
         pass
 
     @abstractmethod

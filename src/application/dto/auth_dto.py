@@ -18,7 +18,7 @@ class UserRegisterDTO(BaseModel):
     confirmed_password: str
     date_joined: datetime = Field(default_factory=datetime.utcnow)
 
-    def validate_password(self):
+    def validate_password(self) -> None:
         if self.hashed_password != self.confirmed_password:
             raise ExceptionResponse(
                 status_code=400,

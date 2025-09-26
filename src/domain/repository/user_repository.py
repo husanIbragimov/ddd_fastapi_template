@@ -18,11 +18,11 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def save(self, user: UserEntity) -> None:
+    async def save(self,  user: UserEntity) -> None:
         pass
 
     @abstractmethod
-    async def update(self, user: UserEntity) -> None:
+    async def update(self, uuid: UUID, user: UserEntity) -> int:
         pass
 
     @abstractmethod

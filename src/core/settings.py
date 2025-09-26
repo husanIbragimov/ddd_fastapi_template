@@ -75,4 +75,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-print("settings.DB_PORT", settings.db_url)
