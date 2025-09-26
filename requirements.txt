@@ -1,4 +1,4 @@
-alembic==1.16.2
+alembic==1.16.5
 annotated-types==0.7.0
 anyio==4.9.0
 asyncio==3.4.3
@@ -17,7 +17,7 @@ pytest-asyncio==1.0.0
 python-multipart==0.0.20
 python-slugify==8.0.4
 PyYAML==6.0.2
-SQLAlchemy==2.0.41
+SQLAlchemy==2.0.43
 typing_extensions==4.14.1
 uvicorn==0.35.0
 passlib[bcrypt]
