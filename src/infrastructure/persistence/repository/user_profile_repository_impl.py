@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
+from injector import inject
 from sqlalchemy import select
 
 from domain.entity import UserProfileEntity
@@ -11,6 +12,7 @@ from infrastructure.persistence.models import UserModel
 
 
 class UserRepositoryImpl(UserProfileRepository):
+    @inject
     def __init__(self, db: DatabaseSession):
         self.db = db
 

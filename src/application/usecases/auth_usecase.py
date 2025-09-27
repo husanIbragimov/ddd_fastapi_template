@@ -7,9 +7,12 @@ from application.exceptions import ExcResponse
 from application.mappers import to_entity
 from domain.repository import UserRepository
 from infrastructure.security import JwtToken
+from injector import inject, singleton
 
-
+@singleton
 class SignUpUseCase:
+
+    @inject
     def __init__(self, repo: UserRepository):
         self.repo = repo
 
@@ -29,7 +32,10 @@ class SignUpUseCase:
         return AuthTokenOutputDTO(access_token=token)
 
 
+@singleton
 class SignInUseCase:
+
+    @inject
     def __init__(self, repo: UserRepository):
         self.repo = repo
 

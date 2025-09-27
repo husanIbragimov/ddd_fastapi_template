@@ -4,7 +4,6 @@ from fastapi.security import HTTPBasic, HTTPBearer
 
 from core.settings import settings
 from presentation.middlewares import json_renderer_middleware, jwt_auth_middleware
-from presentation.routers import routers
 
 app = FastAPI(
     debug=settings.DEBUG,
@@ -30,5 +29,3 @@ app.add_middleware(
 
 app.middleware("http")(json_renderer_middleware)
 app.middleware("http")(jwt_auth_middleware)
-for router in routers:
-    app.include_router(router)

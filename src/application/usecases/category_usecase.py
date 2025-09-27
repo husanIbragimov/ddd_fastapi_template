@@ -1,10 +1,16 @@
 from typing import Optional
 
-from application.dto.category_dto import CategoryDTO
-from domain.repository.category_repository import CategoryRepository
-from application.mappers.category_mapper import cat_to_entity
+from injector import inject, singleton
 
+from application.dto.category_dto import CategoryDTO
+from application.mappers.category_mapper import cat_to_entity
+from domain.repository.category_repository import CategoryRepository
+
+
+@singleton
 class CategoryUseCase:
+
+    @inject
     def __init__(self, repository: CategoryRepository):
         self.repository = repository
 

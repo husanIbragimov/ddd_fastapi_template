@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
+from injector import inject
 from sqlalchemy import select
 
 from domain.entity.paging_entity import PagingEntity
@@ -12,20 +13,22 @@ from infrastructure.persistence.models import UserModel
 
 
 class UserRepositoryImpl(UserRepository):
+    @inject
     def __init__(self, db: DatabaseSession):
         self.db = db
+
+    async def get_by_uuid(self, uuid: UUID) -> Optional[UserEntity]:
+        return await self._get_by_filter(UserModel.uuid == uuid)
+
+    async def get_by_email(self, email: str) -> Optional[UserEntity]:
+        return await self._get_by_filter(UserModel.email == email)
+
 
     async def update(self, uuid: UUID, user: UserEntity) -> int:
         pass
 
     async def list(self, skip: int = 0, limit: int = 10) -> PagingEntity[UserEntity]:
         pass
-
-    async def get_by_email(self, email: str) -> Optional[UserEntity]:
-        return await self._get_by_filter(UserModel.email == email)
-
-    async def get_by_uuid(self, uuid: UUID) -> Optional[UserEntity]:
-        return await self._get_by_filter(UserModel.uuid == uuid)
 
     async def _get_by_filter(self, *criteria) -> Optional[UserEntity]:
         async with self.db.session_scope() as session:
