@@ -1,3 +1,5 @@
 from .user_repository import UserRepository
 from .user_profile_repository import UserProfileRepository
 from .category_repository import CategoryRepository
+from .upload_file_repository import UploadFileRepository
+from .tag_repository import TagRepository

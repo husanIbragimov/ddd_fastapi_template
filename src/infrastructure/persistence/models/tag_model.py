@@ -4,7 +4,6 @@ from sqlalchemy import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base_model import BaseModel
-from .product_tag_association import ProductTagModel
 
 
 class TagModel(BaseModel):

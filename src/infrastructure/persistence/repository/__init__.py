@@ -1,3 +1,6 @@
-from .user_repository_impl import UserRepositoryImpl
+from .base_repository import BaseRepository
 from .category_repository_impl import CategoryRepositoryImpl
+from .tag_repository_impl import TagRepositoryImpl
+from .upload_repository_impl import UploadFileRepositoryImpl
 from .user_profile_repository_impl import UserProfileRepositoryImpl
+from .user_repository_impl import UserRepositoryImpl

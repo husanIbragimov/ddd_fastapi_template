@@ -3,8 +3,9 @@ from typing import List, Dict
 from sqlalchemy import JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from . import CategoryModel
 from .base_model import BaseModel
+from .category_model import CategoryModel
+from .product_image_model import ProductImageModel
 from .tag_model import TagModel
 
 
@@ -20,6 +21,8 @@ class ProductModel(BaseModel):
     category: Mapped[CategoryModel] = relationship("CategoryModel", back_populates="products")
 
     tags: Mapped[List[TagModel]] = relationship("TagModel", secondary="product_tag", back_populates="products")
+
+    images: Mapped[List[ProductImageModel]] = relationship("ProductImageModel", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<ProductModel name={self.name} price={self.price} stock={self.stock}>"

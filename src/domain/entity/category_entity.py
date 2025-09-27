@@ -8,8 +8,8 @@ from application.dto import CategoryDTO
 @dataclass
 class CategoryEntity:
     uuid: UUID | None
-    name: str
-    description: str | None = None
+    name: dict[str, str]
+    description: dict[str, str] | None
 
     def to_dto(self) -> CategoryDTO:
         return CategoryDTO(

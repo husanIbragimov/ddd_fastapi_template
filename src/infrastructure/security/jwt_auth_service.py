@@ -7,10 +7,11 @@ import jwt
 from passlib.context import CryptContext
 
 from core.settings import settings
+from domain.services.security import TokenService
 from utils.timezone import utcnow
 
 
-class JwtToken:
+class JwtToken(TokenService):
     ALGORITHM = settings.JWT_ALGORITHM
     SIGNING_KEY = settings.SECRET_KEY
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
