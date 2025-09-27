@@ -23,4 +23,5 @@ class UserProfileUseCase:
 
         raise ExcResponse(
             status_code=404,
+            error="User not found"
         )

@@ -11,13 +11,18 @@ from infrastructure.persistence.mappers import user_model_to_entity
 from infrastructure.persistence.models import UserModel
 
 
-class UserRepositoryImpl(UserProfileRepository):
+class UserProfileRepositoryImpl(UserProfileRepository):
+
     @inject
     def __init__(self, db: DatabaseSession):
         self.db = db
+        print('UserProfileRepositoryImpl init???????')
+
 
     async def get_by_uuid(self, uuid: UUID) -> Optional[UserProfileEntity]:
+
         async with self.db.session_scope() as session:
+
             result = await session.execute(
                 select(UserModel).where(UserModel.uuid == uuid)
             )

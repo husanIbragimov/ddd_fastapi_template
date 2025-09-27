@@ -13,5 +13,6 @@ async def get_user_me(
         request: Request,
         use_case: UserProfileUseCase = Depends(lambda: container.get(UserProfileUseCase))
 ) -> UserProfileDTO:
+    print("request ========>", request)
     user_id: UUID = request.state.user_id
     return await use_case.execute(user_id)

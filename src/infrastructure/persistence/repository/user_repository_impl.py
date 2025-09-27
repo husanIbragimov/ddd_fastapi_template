@@ -13,6 +13,7 @@ from infrastructure.persistence.models import UserModel
 
 
 class UserRepositoryImpl(UserRepository):
+
     @inject
     def __init__(self, db: DatabaseSession):
         self.db = db

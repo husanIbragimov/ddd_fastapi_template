@@ -1,2 +1,3 @@
 from .user_repository_impl import UserRepositoryImpl
 from .category_repository_impl import CategoryRepositoryImpl
+from .user_profile_repository_impl import UserProfileRepositoryImpl
