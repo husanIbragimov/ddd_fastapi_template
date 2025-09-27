@@ -7,7 +7,7 @@ from sqlalchemy import select
 from domain.entity import UserProfileEntity
 from domain.repository import UserProfileRepository
 from infrastructure.persistence.db_session import DatabaseSession
-from infrastructure.persistence.mappers import user_model_to_entity
+from infrastructure.persistence.mappers import profile_model_to_entity
 from infrastructure.persistence.models import UserModel
 
 
@@ -27,4 +27,4 @@ class UserProfileRepositoryImpl(UserProfileRepository):
                 select(UserModel).where(UserModel.uuid == uuid)
             )
             user = result.scalar_one_or_none()
-            return user_model_to_entity(user) if user else None
+            return profile_model_to_entity(user) if user else None

@@ -1,8 +1,9 @@
 import json
 
 from fastapi import Request
+from fastapi.responses import Response
 from starlette.middleware.base import _StreamingResponse
-from starlette.responses import Response
+
 
 async def json_renderer_middleware(request: Request, call_next) -> Response:
     response: _StreamingResponse = await call_next(request)

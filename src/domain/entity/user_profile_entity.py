@@ -5,10 +5,10 @@ from uuid import UUID
 
 @dataclass
 class UserProfileEntity:
-    uuid: UUID | None
+    uuid: UUID
     first_name: str
     last_name: str | None
     username: str
     email: str
     phone_number: str
-    date_joined: datetime | None = None
+    date_joined: datetime | str | None

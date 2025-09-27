@@ -24,7 +24,6 @@ class UserRepositoryImpl(UserRepository):
     async def get_by_email(self, email: str) -> Optional[UserEntity]:
         return await self._get_by_filter(UserModel.email == email)
 
-
     async def update(self, uuid: UUID, user: UserEntity) -> int:
         pass
 
@@ -33,17 +32,18 @@ class UserRepositoryImpl(UserRepository):
 
     async def _get_by_filter(self, *criteria) -> Optional[UserEntity]:
         async with self.db.session_scope() as session:
-            result = await session.execute(
-                select(
-                    UserModel
-                ).where(*criteria))
+            stmt = select(UserModel).where(*criteria)
+            result = await session.execute(stmt)
             user = result.scalar_one_or_none()
             return user_model_to_entity(user) if user else None
 
     async def save(self, user: UserEntity) -> None:
         async with self.db.session_scope() as session:
-            if await self._get_by_filter(UserModel.email == user.email):
+            stmt = select(UserModel).where(UserModel.email == user.email)
+            result = await session.execute(stmt)
+            if result.scalar_one_or_none():
                 raise ValueError("Email already exists")
+
             user_mapper = user_entity_to_model(user)
             session.add(user_mapper)
             await session.commit()

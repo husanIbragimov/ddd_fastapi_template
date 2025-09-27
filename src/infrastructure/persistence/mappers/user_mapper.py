@@ -11,6 +11,7 @@ def user_model_to_entity(user: models.UserModel) -> entity.UserEntity:
         phone_number=user.phone_number,
         email=user.email,
         date_joined=user.date_joined,
+        hashed_password=user._hashed_password,
     )
 
 def user_entity_to_model(user: entity.UserEntity) -> models.UserModel:

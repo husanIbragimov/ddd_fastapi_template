@@ -1,9 +1,11 @@
 from typing import Any
 
+from fastapi import HTTPException
+
 from .response_code import ResponseCode
 
 
-class ExcResponse(Exception):
+class ExcResponse(HTTPException):
 
     def __init__(self,
                  status_code: int,
@@ -17,3 +19,17 @@ class ExcResponse(Exception):
         self.message = message
         self.error = error
         self.data = data
+
+        super().__init__(status_code=status_code, detail=self._build_response())
+
+    def _build_response(self) -> dict[str, Any]:
+        response = {}
+        if self.response_code is not None:
+            response["code"] = self.response_code.value
+        if self.message is not None:
+            response["message"] = self.message
+        if self.error is not None:
+            response["error"] = self.error
+        if self.data is not None:
+            response["data"] = self.data
+        return response

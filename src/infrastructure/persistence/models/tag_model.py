@@ -1,9 +1,10 @@
 from typing import Dict
 
-from sqlalchemy import JSON, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import JSON
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base_model import BaseModel
+from .product_tag_association import ProductTagModel
 
 
 class TagModel(BaseModel):
@@ -11,19 +12,9 @@ class TagModel(BaseModel):
 
     name: Mapped[Dict] = mapped_column(JSON, default=dict)
 
+    products = relationship("ProductModel", secondary="product_tag", back_populates="tags")
+
     def __repr__(self):
         return f"<TagModel name={self.name}>"
 
 
-class ProductTagModel(BaseModel):
-    __tablename__ = "product_tag"
-
-    product_id: Mapped[str] = mapped_column(
-        ForeignKey("products.uuid", ondelete="CASCADE"), primary_key=True
-    )
-    tag_id: Mapped[str] = mapped_column(
-        ForeignKey("tags.uuid", ondelete="CASCADE"), primary_key=True
-    )
-
-    def __repr__(self):
-        return f"<ProductTagModel product_id={self.product_id} tag_id={self.tag_id}>"

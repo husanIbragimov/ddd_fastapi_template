@@ -1,11 +1,9 @@
-from pydantic.v1 import EmailStr
-
-from application.dto.user_profile_dto import UserProfileDTO
-from domain.entity import UserProfileEntity
+from domain import entity
+from infrastructure.persistence import models
 
 
-def profile_entity_to_dto(user: UserProfileEntity) -> UserProfileDTO:
-    return UserProfileDTO(
+def profile_model_to_entity(user: models.UserModel) -> entity.UserProfileEntity:
+    return entity.UserProfileEntity(
         uuid=user.uuid,
         first_name=user.first_name,
         last_name=user.last_name,

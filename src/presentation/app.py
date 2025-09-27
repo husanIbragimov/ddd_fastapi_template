@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBearer
 
 from core.settings import settings
-from presentation.middlewares import json_renderer_middleware, jwt_auth_middleware
+from presentation.middlewares import json_renderer_middleware, jwt_auth_middleware, validation_error_middleware
 
 app = FastAPI(
     debug=settings.DEBUG,
@@ -27,5 +27,6 @@ app.add_middleware(
     allow_headers=settings.ALLOWED_HEADERS,
 )
 
+app.middleware("http")(validation_error_middleware)
 app.middleware("http")(json_renderer_middleware)
 app.middleware("http")(jwt_auth_middleware)

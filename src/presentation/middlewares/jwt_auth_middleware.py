@@ -16,6 +16,7 @@ async def jwt_auth_middleware(request: Request, call_next) -> JSONResponse:
 
         try:
             payload: Optional[Dict[str, Any]] = JwtToken.decode(token)
+            print("payload", payload)
             if not payload or payload.get('user_id') is None:
                 raise exceptions.InvalidSubjectError("Invalid token. user_id must be provided")
 
