@@ -10,12 +10,11 @@ from infrastructure.persistence import models
 from .base_repository import BaseRepository
 
 
-class TagRepositoryImpl(TagRepository):
-    base_repo: BaseRepository()
+class TagRepositoryImpl(BaseRepository, TagRepository):
 
     async def create(self, tag: entity.TagEntity) -> UUID:
 
-        async with self.base_repo.db.session_scope() as session:
+        async with self.db.session_scope() as session:
 
             tag_model = models.TagModel(name=tag.name)
             session.add(tag_model)
@@ -25,7 +24,7 @@ class TagRepositoryImpl(TagRepository):
 
     async def get_by_id(self, tag_id: UUID) -> errors.RecordNotFoundError | TagEntity:
 
-        async with self.base_repo.db.session_scope() as session:
+        async with self.db.session_scope() as session:
 
             tag_model = await session.get(models.TagModel, tag_id)
             if tag_model is None:
@@ -34,7 +33,7 @@ class TagRepositoryImpl(TagRepository):
 
     async def list(self, skip: int = 0, limit: int = 10) -> entity.PagingEntity[entity.TagEntity]:
 
-        async with self.base_repo.db.session_scope() as session:
+        async with self.db.session_scope() as session:
 
             result = await session.execute(
                 select(models.TagModel).offset(skip).limit(limit)
@@ -53,7 +52,7 @@ class TagRepositoryImpl(TagRepository):
 
     async def update(self, tag_id: UUID, tag: entity.TagEntity) -> UUID:
 
-        async with self.base_repo.db.session_scope() as session:
+        async with self.db.session_scope() as session:
             tag_model = await session.get(models.TagModel, tag_id)
             if tag_model is None:
                 raise errors.RecordNotFoundError("Tag not found")

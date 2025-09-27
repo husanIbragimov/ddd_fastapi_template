@@ -1,28 +1,33 @@
 from sqlalchemy.exc import IntegrityError, NoResultFound, SQLAlchemyError
 
 
-class DatabaseError(Exception):
+class InfraError(Exception):
     """Base class for database-related errors."""
     pass
 
 
-class RecordNotFoundError(DatabaseError):
+class RecordNotFoundError(InfraError):
     """Raised when a database record is not found."""
     pass
 
 
-class DuplicateRecordError(DatabaseError):
+class DuplicateRecordError(InfraError):
     """Raised when attempting to create a duplicate record."""
     pass
 
 
-class TransactionError(DatabaseError):
+class TransactionError(InfraError):
     """Raised when a database transaction fails."""
     pass
 
 
-class UnknownDatabaseError(DatabaseError):
+class UnknownDatabaseError(InfraError):
     """Raised for unknown database errors."""
+    pass
+
+
+class VerificationError(InfraError):
+    """Raised when verification of data fails."""
     pass
 
 

@@ -7,8 +7,7 @@ from infrastructure.persistence.models import UploadModel
 from .base_repository import BaseRepository
 
 
-class UploadFileRepositoryImpl(UploadFileRepository):
-    base_repo: BaseRepository()
+class UploadFileRepositoryImpl(BaseRepository, UploadFileRepository):
 
     async def upload(self, file: bytes, filename: str) -> UUID:
         upload_dir = os.path.join(BASE_DIR, "uploads")
@@ -18,7 +17,7 @@ class UploadFileRepositoryImpl(UploadFileRepository):
         with open(file_path, "wb") as f:
             f.write(file)
 
-        async with self.base_repo.db.session_scope() as session:
+        async with self.db.session_scope() as session:
             upload_model = UploadModel(url=file_path)
             session.add(upload_model)
             await session.commit()

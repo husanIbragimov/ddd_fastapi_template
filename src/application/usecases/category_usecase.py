@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from injector import inject, singleton
 
@@ -15,7 +15,7 @@ class CategoryUseCase:
     def __init__(self, repository: CategoryRepository):
         self.repository = repository
 
-    async def create_category(self, data: CategoryDTO) -> Optional[CategoryDTO, ExcResponse]:
+    async def create_category(self, data: CategoryDTO) -> Union[CategoryDTO, ExcResponse]:
         try:
             cat_entity = cat_to_entity(data)
             result =  await self.repository.create(cat_entity)

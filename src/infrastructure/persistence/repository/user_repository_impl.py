@@ -11,8 +11,7 @@ from infrastructure.persistence.models import UserModel
 from .base_repository import BaseRepository
 
 
-class UserRepositoryImpl(UserRepository):
-    base_repo: BaseRepository()
+class UserRepositoryImpl(BaseRepository, UserRepository):
 
     async def get_by_uuid(self, uuid: UUID) -> Optional[UserEntity]:
         return await self._get_by_filter(UserModel.uuid == uuid)
@@ -28,7 +27,7 @@ class UserRepositoryImpl(UserRepository):
 
     async def _get_by_filter(self, *criteria) -> Optional[UserEntity]:
 
-        async with self.base_repo.db.session_scope() as session:
+        async with self.db.session_scope() as session:
             stmt = select(UserModel).where(*criteria)
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
@@ -36,7 +35,7 @@ class UserRepositoryImpl(UserRepository):
 
     async def save(self, user: UserEntity) -> None:
 
-        async with self.base_repo.db.session_scope() as session:
+        async with self.db.session_scope() as session:
             stmt = select(UserModel).where(UserModel.email == user.email)
             result = await session.execute(stmt)
             if result.scalar_one_or_none():

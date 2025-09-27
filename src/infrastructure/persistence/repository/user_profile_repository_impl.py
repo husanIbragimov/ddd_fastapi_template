@@ -10,11 +10,10 @@ from infrastructure.persistence.models import UserModel
 from .base_repository import BaseRepository
 
 
-class UserProfileRepositoryImpl(UserProfileRepository):
-    base_repo: BaseRepository()
+class UserProfileRepositoryImpl(BaseRepository, UserProfileRepository):
 
     async def get_by_uuid(self, uuid: UUID) -> Optional[UserProfileEntity]:
-        async with self.base_repo.db.session_scope() as session:
+        async with self.db.session_scope() as session:
 
             result = await session.execute(
                 select(UserModel).where(UserModel.uuid == uuid)

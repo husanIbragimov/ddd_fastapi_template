@@ -3,11 +3,13 @@ from datetime import timedelta, datetime, timezone
 from typing import Dict, Any
 from typing import Optional
 
+import bcrypt
 import jwt
 from passlib.context import CryptContext
 
 from core.settings import settings
 from domain.services.security import TokenService
+from infrastructure.errors import errors
 from utils.timezone import utcnow
 
 
@@ -17,12 +19,21 @@ class JwtToken(TokenService):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     @classmethod
-    def verify_password(cls, raw: str | None, hashed: str | None) -> bool:
-        return cls.pwd_context.verify(raw, hashed)
+    def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
+        try:
+            return bcrypt.checkpw(
+                plain_password.encode('utf-8'),
+                hashed_password.encode('utf-8')
+            )
+        except errors.VerificationError:
+            return False
 
     @classmethod
     def hash_password(cls, password: str) -> str:
-        return cls.pwd_context.hash(password)
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
+
 
     @classmethod
     def encode(cls, payload: Dict[str, Any], expired=timedelta(minutes=10)) -> str:
