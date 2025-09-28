@@ -18,7 +18,11 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def save(self,  user: UserEntity) -> None:
+    async def get_by_username(self, username: str) -> Optional[UserEntity]:
+        pass
+
+    @abstractmethod
+    async def save(self,  user: UserEntity) -> UUID:
         pass
 
     @abstractmethod
