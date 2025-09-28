@@ -1,3 +1,3 @@
 from .json_renderer_middleware import json_renderer_middleware
-from .jwt_auth_middleware import jwt_auth_middleware
+from .jwt_auth_middleware import auth_middleware
 from .error_middleware import validation_error_middleware
