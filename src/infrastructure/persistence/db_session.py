@@ -34,44 +34,31 @@ class DatabaseSession:
             await session.close()
 """
 
-class DatabaseSession:
-    _instance = None
-    _engine = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        if self._engine is None:
-            self._engine = create_async_engine(
-                settings.DATABASE_URL,
-                echo=settings.DEBUG,
-                pool_size=20,
-                max_overflow=30,
-                pool_pre_ping=True,
-                pool_recycle=3600
-            )
-            self.AsyncSessionLocal = async_sessionmaker(
-                self._engine,
-                expire_on_commit=False,
-                class_=AsyncSession
-            )
+class DatabaseSession(AsyncSession):
+    def __init__(self, db_url: str):
+        self.engine = create_async_engine(db_url, echo=True, future=True)
+        self.AsyncSessionLocal = async_sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
+        super().__init__(bind=self.engine)
 
     @asynccontextmanager
-    async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
-        async with self.AsyncSessionLocal() as session:
-            try:
+    async def session_scope(self) -> AsyncGenerator[AsyncSession, None]:
+        session = self.AsyncSessionLocal()
+        try:
+            yield session
+        finally:
+            await session.close()
+
+    @asynccontextmanager
+    async def transaction_scope(self) -> AsyncGenerator[AsyncSession, None]:
+        session = self.AsyncSessionLocal()
+        try:
+            async with session.begin():
                 yield session
-            except Exception:
-                await session.rollback()
-                raise
-            finally:
-                await session.close()
+        finally:
+            await session.close()
 
 
 # Singleton instance
 @lru_cache()
-def get_database_session() -> DatabaseSession:
-    return DatabaseSession()
+def get_database_session(db_url: str) -> DatabaseSession:
+    return DatabaseSession(db_url=db_url)

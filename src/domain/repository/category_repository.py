@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from domain.entity.category_entity import CategoryEntity
 from domain.entity.paging_entity import PagingEntity
@@ -14,5 +15,5 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_pk(self, pk: int) -> CategoryEntity | None:
+    async def get_by_uuid(self, uuid: UUID) -> CategoryEntity | None:
         pass

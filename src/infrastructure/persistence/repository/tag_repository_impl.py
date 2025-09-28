@@ -1,63 +1,17 @@
-from uuid import UUID
-
-from sqlalchemy import func, select
-
-from domain import entity
 from domain.entity import TagEntity
 from domain.repository import TagRepository
-from infrastructure.errors import errors
-from infrastructure.persistence import models
+from infrastructure.persistence.db_session import DatabaseSession
+from infrastructure.persistence.models import TagModel
 from .base_repository import BaseRepository
 
 
-class TagRepositoryImpl(BaseRepository, TagRepository):
+class TagRepositoryImpl(BaseRepository[TagModel, TagEntity], TagRepository):
 
-    async def create(self, tag: entity.TagEntity) -> UUID:
+    def __init__(self, db_session: DatabaseSession):
+        super().__init__(db_session=db_session, model_class=TagModel)
 
-        async with self.db.session_scope() as session:
+    def model_to_entity(self, model: TagModel) -> TagEntity:
+        return TagEntity(uuid=model.uuid, name=model.name)
 
-            tag_model = models.TagModel(name=tag.name)
-            session.add(tag_model)
-            await session.commit()
-            await session.refresh(tag_model)
-            return tag_model.uuid
-
-    async def get_by_id(self, tag_id: UUID) -> errors.RecordNotFoundError | TagEntity:
-
-        async with self.db.session_scope() as session:
-
-            tag_model = await session.get(models.TagModel, tag_id)
-            if tag_model is None:
-                return errors.RecordNotFoundError("Tag not found")
-            return entity.TagEntity(uuid=tag_model.uuid, name=tag_model.name)
-
-    async def list(self, skip: int = 0, limit: int = 10) -> entity.PagingEntity[entity.TagEntity]:
-
-        async with self.db.session_scope() as session:
-
-            result = await session.execute(
-                select(models.TagModel).offset(skip).limit(limit)
-            )
-            items = result.scalars().all()
-            total = await session.execute(
-                select(func.count()).select_from(models.TagModel)
-            )
-            total_count = total.scalar_one()
-            return entity.PagingEntity[entity.TagEntity](
-                page=skip,
-                size=limit,
-                items=items,
-                total=total_count,
-            )
-
-    async def update(self, tag_id: UUID, tag: entity.TagEntity) -> UUID:
-
-        async with self.db.session_scope() as session:
-            tag_model = await session.get(models.TagModel, tag_id)
-            if tag_model is None:
-                raise errors.RecordNotFoundError("Tag not found")
-            tag_model.name = tag.name
-            session.add(tag_model)
-            await session.commit()
-            await session.refresh(tag_model)
-            return tag_model.uuid
+    def entity_to_model(self, entity: TagEntity) -> TagModel:
+        return TagModel(name=entity.name)

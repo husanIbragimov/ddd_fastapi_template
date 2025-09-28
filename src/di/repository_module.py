@@ -1,5 +1,6 @@
-from injector import Module, singleton, Binder
-
+from injector import Module, singleton, Binder, provider
+from sqlalchemy.ext.asyncio import AsyncSession
+from core.settings import settings
 from domain.repository import (
     UserProfileRepository,
     UserRepository,
@@ -8,6 +9,7 @@ from domain.repository import (
 from domain.services.security import (
     TokenService,
 )
+from infrastructure.persistence.db_session import DatabaseSession, get_database_session
 from infrastructure.persistence.repository import (
     UserRepositoryImpl,
     CategoryRepositoryImpl,
@@ -19,6 +21,14 @@ from infrastructure.security import (
 
 
 class RepositoryModule(Module):
+    @provider
+    @singleton
+    def provide_database(self) -> DatabaseSession:
+        return get_database_session(settings.DATABASE_URL)
+
+    @provider
+    async def provide_async_session(self, db: DatabaseSession) -> AsyncSession:
+        return db.AsyncSessionLocal()
 
     def configure(self, binder: Binder) -> None:
         binder.bind(TokenService, to=JwtToken, scope=singleton)

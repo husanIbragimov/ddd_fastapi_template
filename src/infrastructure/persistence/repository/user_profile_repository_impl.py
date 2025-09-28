@@ -1,22 +1,18 @@
-from typing import Optional
-from uuid import UUID
-
-from sqlalchemy import select
-
 from domain.entity import UserProfileEntity
 from domain.repository import UserProfileRepository
+from infrastructure.persistence.db_session import DatabaseSession
 from infrastructure.persistence.mappers import profile_model_to_entity
 from infrastructure.persistence.models import UserModel
-from .base_repository import BaseRepository
+from .base_repository import BaseRepository, EntityType, ModelType
 
 
-class UserProfileRepositoryImpl(BaseRepository, UserProfileRepository):
+class UserProfileRepositoryImpl(BaseRepository[UserModel, UserProfileEntity], UserProfileRepository):
 
-    async def get_by_uuid(self, uuid: UUID) -> Optional[UserProfileEntity]:
-        async with self.db.session_scope() as session:
+    def __init__(self, db_session: DatabaseSession):
+        super().__init__(db_session=db_session, model_class=UserModel)
 
-            result = await session.execute(
-                select(UserModel).where(UserModel.uuid == uuid)
-            )
-            user = result.scalar_one_or_none()
-            return profile_model_to_entity(user) if user else None
+    def model_to_entity(self, model: ModelType) -> EntityType:
+        return profile_model_to_entity(model)
+
+    def entity_to_model(self, entity: EntityType) -> ModelType:
+        pass

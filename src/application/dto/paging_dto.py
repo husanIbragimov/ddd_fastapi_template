@@ -1,9 +1,9 @@
 from typing import Generic, TypeVar, List
-from pydantic.generics import GenericModel
+from pydantic import BaseModel
 
 T = TypeVar('T')
 
-class PagingDTO(GenericModel, Generic[T]):
+class PagingDTO(BaseModel, Generic[T]):
     page: int
     size: int
     total: int

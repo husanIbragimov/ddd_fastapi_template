@@ -2,13 +2,14 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Optional, List
 from uuid import UUID
 
+from injector import inject
 from sqlalchemy import select, delete, func
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
 from core.exceptions import EntityNotFoundException, InfrastructureException
 from core.response import ErrorCode
 from domain.entity.paging_entity import PagingEntity
+from infrastructure.persistence.db_session import DatabaseSession
 
 ModelType = TypeVar('ModelType', bound=DeclarativeBase)
 EntityType = TypeVar('EntityType')
@@ -16,7 +17,8 @@ EntityType = TypeVar('EntityType')
 
 class BaseRepository(Generic[ModelType, EntityType], ABC):
 
-    def __init__(self, db_session: AsyncSession, model_class: type[ModelType]):
+    @inject
+    def __init__(self, db_session: DatabaseSession, model_class: type[ModelType]):
         self.db = db_session
         self.model_class = model_class
 
@@ -30,7 +32,7 @@ class BaseRepository(Generic[ModelType, EntityType], ABC):
         """Convert entity to model"""
         pass
 
-    async def get_by_id(self, entity_id: UUID) -> Optional[EntityType]:
+    async def get_by_uuid(self, entity_id: UUID) -> Optional[EntityType]:
         """Get entity by ID"""
         try:
             result = await self.db.get(self.model_class, entity_id)

@@ -24,14 +24,14 @@ class TagUseCase:
             return ExcResponse(status_code=500, error=f"Internal Server Error: {err}")
 
     async def get_by_id(self, tag_id: UUID) -> TagDTO | ExcResponse:
-        result = await self.repository.get_by_id(tag_id)
+        result = await self.repository.get_by_uuid(tag_id)
         if result is None:
             return ExcResponse(status_code=404, error="Tag not found")
         return tag_entity_to_dto(result)
 
     async def list(self, skip: int = 0, limit: int = 10) -> PagingDTO[TagDTO]:
         result = await self.repository.list(skip=skip, limit=limit)
-        return PagingDTO[TagDTO](
+        return PagingDTO.new(
             page=result.page,
             size=result.size,
             total=result.total,

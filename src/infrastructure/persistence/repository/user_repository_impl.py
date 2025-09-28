@@ -1,47 +1,63 @@
 from typing import Optional
 from uuid import UUID
 
+from injector import inject
 from sqlalchemy import select
 
-from domain.entity.paging_entity import PagingEntity
-from domain.entity.user_entity import UserEntity
-from domain.repository.user_repository import UserRepository
+from core.exceptions import InfrastructureException
+from core.response import ErrorCode
+from domain.entity import UserEntity
+from domain.repository import UserRepository
+from infrastructure.persistence.db_session import DatabaseSession
 from infrastructure.persistence.mappers import user_model_to_entity, user_entity_to_model
 from infrastructure.persistence.models import UserModel
 from .base_repository import BaseRepository
 
 
-class UserRepositoryImpl(BaseRepository, UserRepository):
+class UserRepositoryImpl(BaseRepository[UserModel, UserEntity], UserRepository):
 
-    async def get_by_uuid(self, uuid: UUID) -> Optional[UserEntity]:
-        return await self._get_by_filter(UserModel.uuid == uuid)
+    @inject
+    def __init__(self, db_session: DatabaseSession):
+        super().__init__(db_session=db_session, model_class=UserModel)
+
+    def model_to_entity(self, model: UserModel) -> UserEntity:
+        return user_model_to_entity(model)
+
+    def entity_to_model(self, entity: UserEntity) -> UserModel:
+        return user_entity_to_model(entity)
+
+    async def get_by_username(self, username: str) -> Optional[UserEntity]:
+        return await self._get_by_filter(UserModel.username == username)
 
     async def get_by_email(self, email: str) -> Optional[UserEntity]:
         return await self._get_by_filter(UserModel.email == email)
 
-    async def update(self, uuid: UUID, user: UserEntity) -> int:
-        pass
-
-    async def list(self, skip: int = 0, limit: int = 10) -> PagingEntity[UserEntity]:
-        pass
-
     async def _get_by_filter(self, *criteria) -> Optional[UserEntity]:
+        stmt = select(UserModel).where(*criteria)
+        result = await self.db.execute(stmt)
+        user = result.scalar_one_or_none()
+        return user_model_to_entity(user) if user else None
 
-        async with self.db.session_scope() as session:
-            stmt = select(UserModel).where(*criteria)
-            result = await session.execute(stmt)
-            user = result.scalar_one_or_none()
-            return user_model_to_entity(user) if user else None
-
-    async def save(self, user: UserEntity) -> None:
-
-        async with self.db.session_scope() as session:
+    async def save(self, user: UserEntity) -> UUID:
+        try:
             stmt = select(UserModel).where(UserModel.email == user.email)
-            result = await session.execute(stmt)
+            result = await self.db.execute(stmt)
             if result.scalar_one_or_none():
-                raise ValueError("Email already exists")
+                raise InfrastructureException(
+                    f"User with email {user.email} already exists",
+                    ErrorCode.DUPLICATE_ENTITY_ERROR,
+                    cause=None
+                )
 
-            user_mapper = user_entity_to_model(user)
-            session.add(user_mapper)
-            await session.commit()
-            await session.refresh(user_mapper)
+            user_object = user_entity_to_model(user)
+            self.db.add(user_object)
+            await self.db.commit()
+            await self.db.refresh(user_object)
+            return user_object.uuid
+        except Exception as e:
+            await self.db.rollback()
+            raise InfrastructureException(
+                f"Error saving user with email {user.email}",
+                ErrorCode.DATABASE_ERROR,
+                cause=e
+            )
