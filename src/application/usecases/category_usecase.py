@@ -3,7 +3,7 @@ from typing import Optional, Union
 from injector import inject, singleton
 
 from application.dto import CategoryDTO, PagingDTO
-from application.mappers import cat_to_entity
+from application.mappers import cat_to_entity, cat_to_dto
 from application.exceptions import errors, ExcResponse
 from domain.repository import CategoryRepository
 
@@ -29,10 +29,11 @@ class CategoryUseCase:
 
     async def list_categories(self, skip: int = 0, limit: int = 10) -> PagingDTO[CategoryDTO]:
         result = await self.repository.list(skip=skip, limit=limit)
+        print("result", result.items)
 
         return PagingDTO[CategoryDTO](
-            page=result.page,
-            size=result.size,
+            page=skip,
+            size=limit,
             total=result.total,
-            items=[item.to_dto() for item in result.items]
+            items=[cat_to_dto(item) for item in result.items]
         )

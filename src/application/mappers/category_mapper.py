@@ -8,3 +8,10 @@ def cat_to_entity(dto: CategoryDTO) -> CategoryEntity:
         name=dto.name,
         description=dto.description
     )
+
+def cat_to_dto(entity: CategoryEntity) -> CategoryDTO:
+    return CategoryDTO(
+        uuid=entity.uuid,
+        name=entity.name,
+        description=entity.description
+    )

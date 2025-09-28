@@ -1,15 +1,14 @@
 from typing import Generic, TypeVar, List
+from pydantic.generics import GenericModel
 
 T = TypeVar('T')
 
-
-class PagingDTO(Generic[T]):
-    def __init__(self, page: int, size: int, total: int, items: List[T]):
-        self.page = page
-        self.size = size
-        self.total = total
-        self.items = items
+class PagingDTO(GenericModel, Generic[T]):
+    page: int
+    size: int
+    total: int
+    items: List[T]
 
     @classmethod
     def new(cls, page: int, size: int, total: int, items: List[T]) -> 'PagingDTO[T]':
-        return cls(page, size, total, items)
+        return cls(page=page, size=size, total=total, items=items)

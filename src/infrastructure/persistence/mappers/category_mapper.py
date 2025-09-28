@@ -10,6 +10,8 @@ def category_entity_to_model(category_entity: CategoryEntity) -> CategoryModel:
 
 
 def category_model_to_entity(category: CategoryModel) -> CategoryEntity:
+    print("============>>")
+    print(category.uuid)
     return CategoryEntity(
         uuid=category.uuid,
         name=category.name,

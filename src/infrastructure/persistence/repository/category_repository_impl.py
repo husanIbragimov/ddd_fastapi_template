@@ -26,14 +26,21 @@ class CategoryRepositoryImpl(BaseRepository, CategoryRepository):
 
         async with self.db.session_scope() as session:
             result = await session.execute(
-                CategoryModel.__table__.select().offset(skip).limit(limit)
+                select(CategoryModel).offset(skip).limit(limit)
             )
             items = result.scalars().all()
+            print(items, "==================>")
             total = await session.execute(
                 select(func.count()).select_from(CategoryModel)
             )
             total_count = total.scalar_one()
-            return PagingEntity[CategoryEntity](page=skip, size=limit, total=total_count, items=items)
+
+            return PagingEntity[CategoryEntity](
+                page=skip,
+                size=limit,
+                total=total_count,
+                items=[category_model_to_entity(item) for item in items]
+            )
 
     async def get_by_pk(self, pk: int) -> CategoryEntity | None:
 
