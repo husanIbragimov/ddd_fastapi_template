@@ -11,14 +11,14 @@ from .base_repository import BaseRepository
 
 class CategoryRepositoryImpl(BaseRepository, CategoryRepository):
 
-    async def create(self, data: CategoryEntity) -> CategoryModel:
+    async def create(self, data: CategoryEntity) -> CategoryEntity:
         try:
             category_mapper = category_entity_to_model(data)
 
             async with self.db.session_scope() as session:
                 session.add(category_mapper)
                 await session.commit()
-                return category_mapper
+                return category_model_to_entity(category_mapper)
         except SQLAlchemyError as err:
             raise InternalServerError from err
 
