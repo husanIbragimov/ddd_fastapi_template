@@ -1,11 +1,10 @@
-from typing import Optional
 from uuid import UUID
 
 from injector import inject, singleton
 
 from application.dto import UserProfileDTO
-from application.exceptions import ExcResponse
 from application.mappers import profile_entity_to_dto
+from core.response import ApiResponse
 from domain.repository import UserProfileRepository
 
 
@@ -16,12 +15,15 @@ class UserProfileUseCase:
     def __init__(self, repo: UserProfileRepository):
         self.repo = repo
 
-    async def execute(self, pk: UUID) -> Optional[UserProfileDTO]:
+    async def execute(self, pk: UUID) -> ApiResponse[UserProfileDTO | None]:
         if user := await self.repo.get_by_uuid(pk):
             user_mapper = profile_entity_to_dto(user)
-            return user_mapper
+            return ApiResponse.success_response(
+                data=user_mapper,
+                message="User profile found successfully"
+            )
 
-        raise ExcResponse(
-            status_code=404,
-            error="User not found"
+        raise ApiResponse.error_response(
+            message="User profile not found",
+            error_code=404,
         )

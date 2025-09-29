@@ -11,7 +11,7 @@ from .schema.category_schema import CategorySchema
 async def create_category(
         data: CategorySchema,
         use_case=Depends(lambda: container.get(CategoryUseCase))
-) -> CategorySchema:
+):
 
     result = await use_case.create_category(data)
     return result

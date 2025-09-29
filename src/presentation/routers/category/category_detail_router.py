@@ -7,11 +7,10 @@ from presentation.routers.category import category_router
 from .schema.category_schema import CategorySchema
 
 
-@category_router.get("/detail/{category_id}/", status_code=200, response_model=CategoryDTO)
+@category_router.get("/detail/{category_id}/")
 async def get_category(
         category_id: str,
-        use_case=Depends(lambda: container.get(CategoryUseCase))
-) -> CategorySchema:
+        use_case=Depends(lambda: container.get(CategoryUseCase))):
 
     result = await use_case.get_category(category_id)
     return result
