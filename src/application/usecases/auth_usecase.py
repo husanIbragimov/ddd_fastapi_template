@@ -29,9 +29,8 @@ class SignUpUseCase:
             # Check if the user already exists
             existing_email = await self.repo.get_by_email(dto.email)
             if existing_email:
-                return ApiResponse.error_response(
-                    message="Email already in use",
-                    error_code=400,
+                raise ValidationException(
+                    "email", "Email already in use",
                 )
 
             # Create the user entity

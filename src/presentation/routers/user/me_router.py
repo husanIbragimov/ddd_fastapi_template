@@ -15,7 +15,7 @@ async def get_user_me(
         use_case: UserProfileUseCase = Depends(lambda: container.get(UserProfileUseCase))
 ):
     if not hasattr(request.state, "user_id"):
-        raise ApiResponse.error_response(
+        return ApiResponse.error_response(
             message="User ID not found in request state",
             error_code=401
         )

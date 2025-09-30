@@ -1,9 +1,32 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBearer
 
 from core.settings import settings
+from infrastructure.persistence.db_session import startup_db, shutdown_db
 from presentation.middlewares import auth_middleware, handle_error_middleware
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifecycle manager
+    - Startup: Database connection
+    - Shutdown: Close database connections
+    """
+    # Startup
+    print("🚀 Starting application...")
+    await startup_db()
+    print("✅ Application started successfully")
+
+    yield  # Application ishlayapti
+
+    # Shutdown
+    print("🛑 Shutting down application...")
+    await shutdown_db()
+    print("✅ Application shutdown complete")
 
 app = FastAPI(
     debug=settings.DEBUG,
@@ -21,7 +44,7 @@ app = FastAPI(
 )
 
 app.middleware("http")(auth_middleware)
-# app.middleware("http")(handle_error_middleware)
+app.middleware("http")(handle_error_middleware)
 
 app.add_middleware(
     CORSMiddleware,

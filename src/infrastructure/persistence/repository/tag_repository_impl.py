@@ -1,3 +1,4 @@
+from injector import inject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entity import TagEntity
@@ -8,6 +9,7 @@ from .base_repository import BaseRepository
 
 class TagRepositoryImpl(BaseRepository[TagModel, TagEntity], TagRepository):
 
+    @inject
     def __init__(self, db_session: AsyncSession):
         super().__init__(db_session=db_session, model_class=TagModel)
 

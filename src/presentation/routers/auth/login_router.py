@@ -21,6 +21,6 @@ async def signin(
     except Exception as e:
         return ApiResponse.error_response(
             message="Authentication failed",
-            error_code=401,
+            error_code=400,
             error_details={"error": str(e)}
         )

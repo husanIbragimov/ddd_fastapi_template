@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Optional, List, Type
 from uuid import UUID
 
-from injector import inject
 from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
@@ -16,8 +15,14 @@ EntityType = TypeVar('EntityType')
 
 
 class BaseRepository(Generic[ModelType, EntityType], ABC):
+    """
+        Constructor - DI container tomonidan chaqiriladi
 
-    @inject
+        Args:
+            db_session: Injector tomonidan beriladi (provide_async_session)
+            model_class: Child class tomonidan beriladi (UserModel, CategoryModel, etc.)
+    """
+
     def __init__(self, db_session: AsyncSession, model_class: Type[ModelType]):
         self.model_class = model_class
         self.db = db_session
@@ -51,7 +56,7 @@ class BaseRepository(Generic[ModelType, EntityType], ABC):
 
             # Get items
             result = await self.db.execute(
-                select(self.model_class).offset(offset).limit(limit)
+                select(self.model_class).offset(skip).limit(limit)
             )
             items = result.scalars().all()
 
@@ -61,7 +66,11 @@ class BaseRepository(Generic[ModelType, EntityType], ABC):
             )
             total = total_result.scalar_one()
 
-            return PagingEntity.new(skip, limit, total, [self.model_to_entity(item) for item in items])
+            return PagingEntity.new(
+                skip // limit + 1 if limit > 0 else 1,
+                limit,
+                total,
+                [self.model_to_entity(item) for item in items])
 
         except Exception as e:
             raise InfrastructureException(

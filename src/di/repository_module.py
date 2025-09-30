@@ -1,23 +1,23 @@
-from typing import AsyncGenerator
-
 from injector import Module, singleton, Binder, provider
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.asyncio import create_async_engine
 
-from core.settings import settings
 from domain.repository import (
-    UserProfileRepository,
+    TagRepository,
     UserRepository,
     CategoryRepository,
+    UploadFileRepository,
+    UserProfileRepository,
 )
 from domain.services.security import (
     TokenService,
 )
-from infrastructure.persistence.db_session import Database
+from infrastructure.persistence.db_session import DatabaseSessionManager, get_db_session_manager
 from infrastructure.persistence.repository import (
+    TagRepositoryImpl,
     UserRepositoryImpl,
     CategoryRepositoryImpl,
-    UserProfileRepositoryImpl
+    UploadFileRepositoryImpl,
+    UserProfileRepositoryImpl,
 )
 from infrastructure.security import (
     JwtToken
@@ -25,16 +25,19 @@ from infrastructure.security import (
 
 
 class RepositoryModule(Module):
-    database = Database(settings.DATABASE_URL)
     @provider
     @singleton
-    def provide_engine(self) -> create_async_engine:
-        return self.database.engine()
+    def provide_database_manager(self) -> DatabaseSessionManager:
+        """Database session manager - faqat bir marta yaratiladi"""
+        return get_db_session_manager()
 
     @provider
-    async def provide_session(self) -> AsyncSession:
-        async with self.database.SessionLocal() as session:
-            yield session
+    def provide_async_session(self, db_manager: DatabaseSessionManager) -> AsyncSession:
+        """
+        Har bir request uchun yangi session yaratadi
+        IMPORTANT: Bu singleton emas, har safar yangi session!
+        """
+        return db_manager.session_factory()
 
     def configure(self, binder: Binder) -> None:
         binder.bind(TokenService, to=JwtToken, scope=singleton)
@@ -42,3 +45,5 @@ class RepositoryModule(Module):
         binder.bind(UserProfileRepository, to=UserProfileRepositoryImpl, scope=singleton)
         binder.bind(UserRepository, to=UserRepositoryImpl, scope=singleton)
         binder.bind(CategoryRepository, to=CategoryRepositoryImpl, scope=singleton)
+        binder.bind(TagRepository, to=TagRepositoryImpl, scope=singleton)
+        binder.bind(UploadFileRepository, to=UploadFileRepositoryImpl, scope=singleton)

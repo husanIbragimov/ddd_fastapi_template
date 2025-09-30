@@ -33,28 +33,31 @@ class UserRepositoryImpl(BaseRepository[UserModel, UserEntity], UserRepository):
         return await self._get_by_filter(UserModel.email == email)
 
     async def _get_by_filter(self, *criteria) -> Optional[UserEntity]:
-        stmt = select(UserModel).where(*criteria)
-        result = await self.db.execute(stmt)
-        user = result.scalar_one_or_none()
-        return user_model_to_entity(user) if user else None
+        try:
+
+            stmt = select(UserModel).where(*criteria)
+            result = await self.db.execute(stmt)
+            user = result.scalar_one_or_none()
+            return user_model_to_entity(user) if user else None
+        except Exception as e:
+            raise InfrastructureException(
+                f"Error getting user by filter {criteria}",
+                ErrorCode.DATABASE_ERROR,
+                cause=e
+            )
 
     async def save(self, user: UserEntity) -> UUID:
         try:
-            stmt = select(UserModel).where(UserModel.email == user.email)
-            result = await self.db.execute(stmt)
-            if result.scalar_one_or_none():
-                raise InfrastructureException(
-                    f"User with email {user.email} already exists",
-                    ErrorCode.DUPLICATE_ENTITY_ERROR,
-                    cause=None
-                )
-
             user_object = user_entity_to_model(user)
             self.db.add(user_object)
-            await self.db.flush()
+            await self.db.commit()
             await self.db.refresh(user_object)
             return user_object.uuid
+        except InfrastructureException:
+            await self.db.rollback()
+            raise
         except Exception as e:
+            await self.db.rollback()
             raise InfrastructureException(
                 f"Error saving user with email {user.email}",
                 ErrorCode.DATABASE_ERROR,

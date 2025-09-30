@@ -1,6 +1,7 @@
 import os
 from uuid import UUID
 
+from injector import inject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import InfrastructureException
@@ -13,6 +14,7 @@ from .base_repository import BaseRepository, EntityType, ModelType
 
 class UploadFileRepositoryImpl(BaseRepository, UploadFileRepository):
 
+    @inject
     def __init__(self, db_session: AsyncSession):
         super().__init__(db_session=db_session, model_class=UploadModel)
 
