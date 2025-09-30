@@ -47,9 +47,11 @@ class BaseRepository(Generic[ModelType, EntityType], ABC):
     async def list(self, skip: int = 0, limit: int = 100) -> PagingEntity[EntityType]:
         """Get all entities with pagination"""
         try:
+            offset = (skip - 1) * limit
+
             # Get items
             result = await self.db.execute(
-                select(self.model_class).offset(skip).limit(limit)
+                select(self.model_class).offset(offset).limit(limit)
             )
             items = result.scalars().all()
 
@@ -59,12 +61,8 @@ class BaseRepository(Generic[ModelType, EntityType], ABC):
             )
             total = total_result.scalar_one()
 
-            return PagingEntity[EntityType](
-                page=skip // limit + 1,
-                size=limit,
-                total=total,
-                items=[self.model_to_entity(item) for item in items]
-            )
+            return PagingEntity.new(skip, limit, total, [self.model_to_entity(item) for item in items])
+
         except Exception as e:
             raise InfrastructureException(
                 f"Error getting all {self.model_class.__name__}",

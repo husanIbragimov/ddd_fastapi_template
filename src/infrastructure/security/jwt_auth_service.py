@@ -1,4 +1,5 @@
 import uuid
+from dataclasses import dataclass
 from datetime import timedelta, datetime, timezone
 from typing import Dict, Any
 from typing import Optional
@@ -13,10 +14,24 @@ from infrastructure.errors import errors
 from utils.timezone import utcnow
 
 
+@dataclass
+class TokenPair:
+    access_token: str
+    refresh_token: str
+    token_type: str = "Bearer"
+
+
 class JwtToken(TokenService):
     ALGORITHM = settings.JWT_ALGORITHM
     SIGNING_KEY = settings.SECRET_KEY
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    ACCESS_TOKEN_EXPIRE = timedelta(minutes=30)
+    REFRESH_TOKEN_EXPIRE = timedelta(days=7)
+
+    def create_token_pair(self, payload: dict) -> TokenPair:
+        access = self.create_access_token(payload, self.ACCESS_TOKEN_EXPIRE)
+        refresh = self.create_refresh_token(payload, self.REFRESH_TOKEN_EXPIRE)
+        return TokenPair(access_token=access, refresh_token=refresh)
 
     @classmethod
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
@@ -51,12 +66,23 @@ class JwtToken(TokenService):
         )
 
     @classmethod
-    def create_access_token(cls, data: dict, expires_delta: Optional[timedelta] = None):
+    def create_access_token(cls, data: dict, expires_delta: Optional[timedelta] = None) -> str:
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+            expire = datetime.now(timezone.utc) + cls.ACCESS_TOKEN_EXPIRE
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, cls.SIGNING_KEY, algorithm=cls.ALGORITHM)
+        return encoded_jwt
+
+    @classmethod
+    def create_refresh_token(cls, data: dict, expires_delta: Optional[timedelta] = None) -> str:
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.now(timezone.utc) + expires_delta
+        else:
+            expire = datetime.now(timezone.utc) + cls.REFRESH_TOKEN_EXPIRE
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, cls.SIGNING_KEY, algorithm=cls.ALGORITHM)
         return encoded_jwt

@@ -4,6 +4,7 @@ from injector import inject, singleton
 
 from application.dto import UserProfileDTO
 from application.mappers import profile_entity_to_dto
+from core.exceptions import EntityNotFoundException
 from core.response import ApiResponse
 from domain.repository import UserProfileRepository
 
@@ -23,7 +24,7 @@ class UserProfileUseCase:
                 message="User profile found successfully"
             )
 
-        raise ApiResponse.error_response(
-            message="User profile not found",
-            error_code=404,
+        raise EntityNotFoundException(
+            entity_name="User",
+            entity_id=str(pk)
         )

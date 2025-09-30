@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     AsyncEngine
 )
-from sqlalchemy.pool import QueuePool
 
 from core.settings import settings
 
@@ -32,7 +31,10 @@ class DatabaseSessionManager:
             max_overflow=10,  # Pool to'lganda qo'shimcha 10 ta
             pool_recycle=3600,  # Har 1 soatda connection yangilanadi
             pool_timeout=30,  # Connection kutish vaqti
-            # poolclass=QueuePool,  # Production uchun QueuePool
+            connect_args={
+                "server_settings": {"application_name": "auth_service"},
+                "timeout": 30,
+            }
         )
 
         # Session factory - har bir request uchun yangi session yaratadi
