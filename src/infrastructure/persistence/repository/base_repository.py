@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Optional, List
+from typing import Generic, TypeVar, Optional, List, Type
 from uuid import UUID
 
 from injector import inject
 from sqlalchemy import select, delete, func
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
 from core.exceptions import EntityNotFoundException, InfrastructureException
 from core.response import ErrorCode
 from domain.entity.paging_entity import PagingEntity
-from infrastructure.persistence.db_session import DatabaseSession
 
 ModelType = TypeVar('ModelType', bound=DeclarativeBase)
 EntityType = TypeVar('EntityType')
@@ -18,9 +18,9 @@ EntityType = TypeVar('EntityType')
 class BaseRepository(Generic[ModelType, EntityType], ABC):
 
     @inject
-    def __init__(self, db_session: DatabaseSession, model_class: type[ModelType]):
-        self.db = db_session
+    def __init__(self, db_session: AsyncSession, model_class: Type[ModelType]):
         self.model_class = model_class
+        self.db = db_session
 
     @abstractmethod
     def model_to_entity(self, model: ModelType) -> EntityType:

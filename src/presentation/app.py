@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBearer
 
 from core.settings import settings
-from presentation.middlewares import auth_middleware
+from presentation.middlewares import auth_middleware, handle_error_middleware
 
 app = FastAPI(
     debug=settings.DEBUG,
@@ -21,6 +21,7 @@ app = FastAPI(
 )
 
 app.middleware("http")(auth_middleware)
+app.middleware("http")(handle_error_middleware)
 
 app.add_middleware(
     CORSMiddleware,

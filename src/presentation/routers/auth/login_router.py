@@ -1,7 +1,5 @@
 from fastapi import Depends
-
 from core.response import ApiResponse
-
 from application.usecases import SignInUseCase
 from di import container
 from presentation.mappers import signin_req_to_dto
@@ -16,6 +14,13 @@ async def signin(
             lambda: container.get(SignInUseCase)
         )
 ):
-    to_dto = signin_req_to_dto(data)
-    result = await use_case.execute(to_dto)
-    return result
+    try:
+        to_dto = signin_req_to_dto(data)
+        result = await use_case.execute(to_dto)
+        return result
+    except Exception as e:
+        return ApiResponse.error_response(
+            message="Authentication failed",
+            error_code=401,
+            error_details={"error": str(e)}
+        )

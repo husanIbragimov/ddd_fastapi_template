@@ -1,18 +1,19 @@
 import os
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.exceptions import InfrastructureException
 from core.response import ErrorCode
 from core.settings import BASE_DIR
 from domain.repository import UploadFileRepository
-from infrastructure.persistence.db_session import DatabaseSession
 from infrastructure.persistence.models import UploadModel
 from .base_repository import BaseRepository, EntityType, ModelType
 
 
 class UploadFileRepositoryImpl(BaseRepository, UploadFileRepository):
 
-    def __init__(self, db_session: DatabaseSession):
+    def __init__(self, db_session: AsyncSession):
         super().__init__(db_session=db_session, model_class=UploadModel)
 
     def model_to_entity(self, model: ModelType) -> EntityType:

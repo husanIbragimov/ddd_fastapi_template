@@ -2,63 +2,103 @@ from contextlib import asynccontextmanager
 from functools import lru_cache
 from typing import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    AsyncSession,
+    async_sessionmaker,
+    AsyncEngine
+)
+from sqlalchemy.pool import QueuePool
 
 from core.settings import settings
 
-"""
-# Old version - not singleton, creates new engine every time
 
-class DatabaseSession:
+class DatabaseSessionManager:
+    """
+    Singleton Database Session Manager
+    - Connection pooling bilan optimal ishlaydi
+    - Memory leak oldini oladi
+    - Har bir request uchun yangi session beradi
+    """
 
-    def __init__(self):
-        print('DatabaseSession init???????')
-        self.engine = AsyncEngine(create_engine(settings.DATABASE_URL, echo=True, future=True))
-        self.AsyncSessionLocal = async_sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
+    def __init__(self, db_url: str, echo: bool = False):
+        # Engine yaratish - faqat bir marta
+        self.engine: AsyncEngine = create_async_engine(
+            db_url,
+            echo=echo,
+            future=True,
+            pool_pre_ping=True,  # Connection dead yoki yo'qligini tekshiradi
+            pool_size=20,  # Maksimal 20 ta connection
+            max_overflow=10,  # Pool to'lganda qo'shimcha 10 ta
+            pool_recycle=3600,  # Har 1 soatda connection yangilanadi
+            pool_timeout=30,  # Connection kutish vaqti
+            # poolclass=QueuePool,  # Production uchun QueuePool
+        )
+
+        # Session factory - har bir request uchun yangi session yaratadi
+        self.session_factory = async_sessionmaker(
+            bind=self.engine,
+            class_=AsyncSession,
+            expire_on_commit=False,  # Commit dan keyin object expire bo'lmasligi
+            autoflush=False,  # Manual flush qilish
+            autocommit=False,  # Manual commit qilish
+        )
 
     @asynccontextmanager
-    async def session_scope(self) -> AsyncGenerator[AsyncSession, None]:
-        session = self.AsyncSessionLocal()
+    async def session(self) -> AsyncGenerator[AsyncSession, None]:
+        """
+        Context manager - har bir request uchun yangi session
+        Avtomatik commit/rollback bilan
+        """
+        session: AsyncSession = self.session_factory()
         try:
             yield session
+            await session.commit()  # Muvaffaqiyatli bo'lsa commit
+        except Exception:
+            await session.rollback()  # Xato bo'lsa rollback
+            raise
         finally:
-            await session.close()
+            await session.close()  # Har doim session yopiladi
 
     @asynccontextmanager
-    async def transaction_scope(self) -> AsyncGenerator[AsyncSession, None]:
-        session = self.AsyncSessionLocal()
-        try:
-            async with session.begin():
+    async def transaction(self) -> AsyncGenerator[AsyncSession, None]:
+        """
+        Transaction context manager - nested transaction uchun
+        """
+        session: AsyncSession = self.session_factory()
+        async with session.begin():
+            try:
                 yield session
-        finally:
-            await session.close()
-"""
+            except Exception:
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
 
-class DatabaseSession(AsyncSession):
-    def __init__(self, db_url: str):
-        self.engine = create_async_engine(db_url, echo=True, future=True)
-        self.AsyncSessionLocal = async_sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
-        super().__init__(bind=self.engine)
-
-    @asynccontextmanager
-    async def session_scope(self) -> AsyncGenerator[AsyncSession, None]:
-        session = self.AsyncSessionLocal()
-        try:
-            yield session
-        finally:
-            await session.close()
-
-    @asynccontextmanager
-    async def transaction_scope(self) -> AsyncGenerator[AsyncSession, None]:
-        session = self.AsyncSessionLocal()
-        try:
-            async with session.begin():
-                yield session
-        finally:
-            await session.close()
+    async def close(self) -> None:
+        """Engine ni yopish - application shutdown da"""
+        if self.engine:
+            await self.engine.dispose()
 
 
-# Singleton instance
+# Singleton instance - faqat bir marta yaratiladi
 @lru_cache()
-def get_database_session(db_url: str) -> DatabaseSession:
-    return DatabaseSession(db_url=db_url)
+def get_db_session_manager() -> DatabaseSessionManager:
+    """
+    Singleton pattern - bir marta yaratiladi va qayta ishlatiladi
+    """
+    return DatabaseSessionManager(
+        db_url=settings.DATABASE_URL,
+        echo=settings.DEBUG
+    )
+
+
+# FastAPI dependency uchun
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """
+    FastAPI Depends() uchun dependency
+    Har bir request uchun yangi session beradi va avtomatik yopadi
+    """
+    manager = get_db_session_manager()
+    async with manager.session() as session:
+        yield session

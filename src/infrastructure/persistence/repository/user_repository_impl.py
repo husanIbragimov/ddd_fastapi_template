@@ -3,12 +3,12 @@ from uuid import UUID
 
 from injector import inject
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import InfrastructureException
 from core.response import ErrorCode
 from domain.entity import UserEntity
 from domain.repository import UserRepository
-from infrastructure.persistence.db_session import DatabaseSession
 from infrastructure.persistence.mappers import user_model_to_entity, user_entity_to_model
 from infrastructure.persistence.models import UserModel
 from .base_repository import BaseRepository
@@ -17,7 +17,7 @@ from .base_repository import BaseRepository
 class UserRepositoryImpl(BaseRepository[UserModel, UserEntity], UserRepository):
 
     @inject
-    def __init__(self, db_session: DatabaseSession):
+    def __init__(self, db_session: AsyncSession):
         super().__init__(db_session=db_session, model_class=UserModel)
 
     def model_to_entity(self, model: UserModel) -> UserEntity:

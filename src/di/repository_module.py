@@ -1,6 +1,6 @@
 from injector import Module, singleton, Binder, provider
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.settings import settings
+
 from domain.repository import (
     UserProfileRepository,
     UserRepository,
@@ -9,11 +9,11 @@ from domain.repository import (
 from domain.services.security import (
     TokenService,
 )
-from infrastructure.persistence.db_session import DatabaseSession, get_database_session
+from infrastructure.persistence.db_session import DatabaseSessionManager, get_db_session_manager, get_db
 from infrastructure.persistence.repository import (
     UserRepositoryImpl,
     CategoryRepositoryImpl,
-    UserProfileRepositoryImpl,
+    UserProfileRepositoryImpl, BaseRepository
 )
 from infrastructure.security import (
     JwtToken
@@ -23,15 +23,19 @@ from infrastructure.security import (
 class RepositoryModule(Module):
     @provider
     @singleton
-    def provide_database(self) -> DatabaseSession:
-        return get_database_session(settings.DATABASE_URL)
+    def provide_database(self) -> DatabaseSessionManager:
+        return get_db_session_manager()
 
     @provider
-    async def provide_async_session(self, db: DatabaseSession) -> AsyncSession:
-        return db.AsyncSessionLocal()
+    @singleton
+    def provide_db_session(self) -> AsyncSession:
+        manager = get_db_session_manager()
+        return manager.session_factory()
 
     def configure(self, binder: Binder) -> None:
         binder.bind(TokenService, to=JwtToken, scope=singleton)
-        binder.bind(UserProfileRepository, to=UserProfileRepositoryImpl, scope=singleton)
-        binder.bind(UserRepository, to=UserRepositoryImpl, scope=singleton)
-        binder.bind(CategoryRepository, to=CategoryRepositoryImpl, scope=singleton)
+
+        binder.bind(BaseRepository, to=get_db, scope=singleton)
+        binder.bind(UserProfileRepository, to=UserProfileRepositoryImpl(self.provide_db_session()), scope=singleton)
+        binder.bind(UserRepository, to=UserRepositoryImpl(self.provide_db_session()), scope=singleton)
+        binder.bind(CategoryRepository, to=CategoryRepositoryImpl(self.provide_db_session()), scope=singleton)
