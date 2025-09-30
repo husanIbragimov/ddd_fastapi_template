@@ -51,11 +51,10 @@ class UserRepositoryImpl(BaseRepository[UserModel, UserEntity], UserRepository):
 
             user_object = user_entity_to_model(user)
             self.db.add(user_object)
-            await self.db.commit()
+            await self.db.flush()
             await self.db.refresh(user_object)
             return user_object.uuid
         except Exception as e:
-            await self.db.rollback()
             raise InfrastructureException(
                 f"Error saving user with email {user.email}",
                 ErrorCode.DATABASE_ERROR,

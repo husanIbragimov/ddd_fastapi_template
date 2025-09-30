@@ -5,10 +5,12 @@ from domain.repository import CategoryRepository
 from infrastructure.persistence.mappers import category_entity_to_model, category_model_to_entity
 from infrastructure.persistence.models import CategoryModel
 from .base_repository import BaseRepository
+from injector import inject
 
 
 class CategoryRepositoryImpl(BaseRepository[CategoryModel, CategoryEntity], CategoryRepository):
 
+    @inject
     def __init__(self, db_session: AsyncSession):
         super().__init__(db_session=db_session, model_class=CategoryModel)
 

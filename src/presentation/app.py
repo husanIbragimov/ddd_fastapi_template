@@ -21,7 +21,7 @@ app = FastAPI(
 )
 
 app.middleware("http")(auth_middleware)
-app.middleware("http")(handle_error_middleware)
+# app.middleware("http")(handle_error_middleware)
 
 app.add_middleware(
     CORSMiddleware,

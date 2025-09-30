@@ -52,7 +52,7 @@ class SignUpUseCase:
             raise
         except Exception as e:
             raise ApplicationException(
-                "Failed to register user",
+                f"Failed to register user: {e}",
                 ErrorCode.DATABASE_ERROR,
                 cause=e
             )
