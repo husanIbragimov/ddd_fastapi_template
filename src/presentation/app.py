@@ -54,3 +54,12 @@ app.add_middleware(
     allow_headers=settings.ALLOWED_HEADERS,
 )
 
+
+@app.on_event("startup")
+async def startup():
+    await startup_db()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await shutdown_db()

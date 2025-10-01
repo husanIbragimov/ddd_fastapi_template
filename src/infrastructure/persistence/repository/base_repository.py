@@ -49,14 +49,14 @@ class BaseRepository(Generic[ModelType, EntityType], ABC):
                 cause=e
             )
 
-    async def list(self, skip: int = 0, limit: int = 100) -> PagingEntity[EntityType]:
+    async def list(self, skip: int = 1, limit: int = 100) -> PagingEntity[EntityType]:
         """Get all entities with pagination"""
         try:
             offset = (skip - 1) * limit
 
             # Get items
             result = await self.db.execute(
-                select(self.model_class).offset(skip).limit(limit)
+                select(self.model_class).offset(offset).limit(limit)
             )
             items = result.scalars().all()
 

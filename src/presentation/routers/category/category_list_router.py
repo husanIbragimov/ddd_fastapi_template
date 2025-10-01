@@ -9,10 +9,10 @@ from .schema.category_schema import CategorySchema
 
 @category_router.get("/list/", status_code=200, response_model=PagingDTO[CategoryDTO])
 async def list_categories(
-        skip: int = 1,
+        page: int = 1,
         limit: int = 10,
         use_case=Depends(lambda: container.get(CategoryUseCase))
 ) -> PagingDTO[CategorySchema]:
 
-    result = await use_case.list_categories(skip=skip, limit=limit)
+    result = await use_case.list_categories(skip=page, limit=limit)
     return result

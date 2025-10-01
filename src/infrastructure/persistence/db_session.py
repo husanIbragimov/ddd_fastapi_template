@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from functools import lru_cache
 from typing import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncSession,
@@ -141,7 +142,7 @@ class DatabaseSessionManager:
         """
         try:
             async with self.session() as session:
-                await session.execute("SELECT 1")
+                await session.execute(text("SELECT 1"))
             return True
         except Exception as e:
             print(f"Database health check failed: {e}")

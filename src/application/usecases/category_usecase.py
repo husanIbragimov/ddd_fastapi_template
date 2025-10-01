@@ -37,7 +37,7 @@ class CategoryUseCase:
             message="Category found successfully"
         )
 
-    async def list_categories(self, skip: int = 0, limit: int = 10) -> PagingDTO[CategoryDTO]:
+    async def list_categories(self, skip: int = 1, limit: int = 10) -> PagingDTO[CategoryDTO]:
         result = await self.repository.list(skip=skip, limit=limit)
 
         return PagingDTO.new(

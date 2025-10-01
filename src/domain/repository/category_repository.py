@@ -12,7 +12,7 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def list(self, skip: int = 0, limit: int = 10) -> PagingEntity[CategoryEntity]:
+    async def list(self, skip: int = 1, limit: int = 10) -> PagingEntity[CategoryEntity]:
         pass
 
     @abstractmethod
