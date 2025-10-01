@@ -21,7 +21,7 @@ class SignUpUseCase:
         self.repo = repo
         self.token_service = token_service
 
-    async def execute(self, dto: UserRegisterDTO) -> ApiResponse[AuthTokenOutputDTO | None]:
+    async def execute(self, dto: UserRegisterDTO) -> ApiResponse[dict[str, str]] | None:
         try:
             # Validate input data
             self._validate_registration_data(dto)
@@ -33,20 +33,12 @@ class SignUpUseCase:
                     "email", "Email already in use",
                 )
 
-            # Create the user entity
-            user_entity = self._create_user_entity(dto)
-
             # Save the user to the repository
-            created_user = await self.repo.save(user_entity)
-
-            # Generate token
-            token = self.token_service.create_access_token({
-                "user_id": str(created_user)
-            })
-            return ApiResponse.success_response(
-                data=AuthTokenOutputDTO(access_token=token),
-                message="User registered successfully"
-            )
+            if user_id := await self.repo.save(self._create_user_entity(dto)):
+                return ApiResponse.success_response(
+                    data={"user_id": str(user_id)},
+                    message="User registered successfully",
+                )
         except ValidationException as e:
             raise
         except Exception as e:
@@ -87,25 +79,34 @@ class SignInUseCase:
 
     async def execute(self, dto: UserLoginDTO) -> ApiResponse[AuthTokenOutputDTO | None]:
         try:
+            # Get user by email
             user = await self.repo.get_by_email(dto.email)
+            print(user)
             if not self._validate_user(user, dto.password):
-                raise ApplicationException(
-                    "Invalid email or password",
-                    ErrorCode.UNAUTHORIZED
+                return ApiResponse.error_response(
+                    message="Invalid email or password",
+                    error_code=401
                 )
 
-            token = self.token_service.create_access_token({"user_id": str(user.uuid)})
+            # Generate JWT access token
+            token = self.token_service.create_token_pair({"user_id": str(user.uuid)})
             return ApiResponse.success_response(
-                data=AuthTokenOutputDTO(access_token=token),
+                data=AuthTokenOutputDTO(
+                    access_token=token.get("access_token"),
+                    refresh_token=token.get("refresh_token")
+                ),
                 message="User logged in successfully"
             )
         except ApplicationException as e:
             return ApiResponse.error_response(
                 message=e.message,
+                error_code=401
+            )
+        except Exception as e:
+            return ApiResponse.error_response(
+                message="Authentication failed",
                 error_code=500,
-                error_details={
-                    "error": f"{e}"
-                }
+                error_details={"error": str(e)}
             )
 
     def _validate_user(self, user: UserEntity, password: str) -> bool:

@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     REDOC_URL: str = "/redoc"
     OPENAPI_PREFIX: str = ""
 
-    JWT_ALGORITHM: ClassVar[str] = env.str("JWT_ALGORITHM", "Hello")
+    JWT_ALGORITHM: ClassVar[str] = env.str("JWT_ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     VERSION: str = "0.1.0"

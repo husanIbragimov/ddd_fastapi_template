@@ -53,6 +53,7 @@ class GlobalExceptionHandler:
             return GlobalExceptionHandler._handle_starlette_exception(exc, request)
 
         except Exception as exc:
+            print("Unexpected error:", exc)
             return GlobalExceptionHandler._handle_unexpected_error(exc, request)
 
     @staticmethod

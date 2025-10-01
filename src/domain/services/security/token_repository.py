@@ -16,3 +16,7 @@ class TokenService(ABC):
     @abstractmethod
     def hash_password(self, password: str) -> str:
         pass
+
+    @abstractmethod
+    def create_token_pair(self, payload: dict) -> dict:
+        pass

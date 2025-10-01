@@ -80,7 +80,12 @@ class BaseRepository(Generic[ModelType, EntityType], ABC):
             )
 
     async def create(self, entity: EntityType) -> EntityType:
-        """Create new entity"""
+        """
+        Create new entity
+
+        IMPORTANT: Commit va rollback FastAPI dependency (get_db) tomonidan
+        avtomatik bajariladi. Bu yerda faqat flush qilamiz.
+        """
         try:
             model = self.entity_to_model(entity)
             self.db.add(model)
@@ -96,7 +101,12 @@ class BaseRepository(Generic[ModelType, EntityType], ABC):
             )
 
     async def update(self, entity_id: UUID, entity: EntityType) -> EntityType:
-        """Update existing entity"""
+        """
+        Update existing entity
+
+        IMPORTANT: Commit va rollback FastAPI dependency (get_db) tomonidan
+        avtomatik bajariladi. Bu yerda faqat flush qilamiz.
+        """
         try:
             existing = await self.db.get(self.model_class, entity_id)
             if not existing:
@@ -120,7 +130,12 @@ class BaseRepository(Generic[ModelType, EntityType], ABC):
             )
 
     async def delete(self, entity_id: UUID) -> bool:
-        """Delete entity"""
+        """
+        Delete entity
+
+        IMPORTANT: Commit va rollback FastAPI dependency (get_db) tomonidan
+        avtomatik bajariladi. Bu yerda faqat flush qilamiz.
+        """
         try:
             result = await self.db.execute(
                 delete(self.model_class).where(self.model_class.uuid == entity_id)

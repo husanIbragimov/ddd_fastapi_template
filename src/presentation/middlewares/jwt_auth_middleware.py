@@ -1,77 +1,86 @@
-from typing import Optional, Set
+from typing import Optional
+from uuid import UUID
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from jwt import decode, InvalidTokenError
+from jwt import InvalidTokenError
 
-from core.exceptions import BaseApplicationException
-from core.response import ErrorCode
-from core.settings import settings
-
-# Public endpoints that don't require authentication
-PUBLIC_ENDPOINTS: Set[str] = {
-    "/auth/signin",
-    "/auth/signup",
-    "/docs",
-    "/openapi.json",
-    "/",
-    "/health"
-}
+from infrastructure.security.jwt_auth_service import JwtToken
 
 
 class AuthenticationMiddleware:
+    """Simple JWT authentication middleware for FastAPI"""
 
-    def __init__(self, public_endpoints: Set[str] = None):
-        self.public_endpoints = public_endpoints or PUBLIC_ENDPOINTS
+    # Public endpoints that don't require authentication
+    PUBLIC_PATHS = {
+        "/auth/",       # All auth endpoints (signin, signup, etc.)
+        "/docs",        # Swagger docs
+        "/openapi.json",
+        "/redoc",
+        "/health",      # Health check
+        "/favicon.ico"
+    }
 
     async def __call__(self, request: Request, call_next):
+        """Process request and validate JWT token if required"""
+
         # Skip authentication for public endpoints
-        if self._is_public_endpoint(request.url.path):
+        if self._is_public_path(request.url.path):
             return await call_next(request)
 
-        # Extract and validate token
-        token = self._extract_token(request)
+        # Extract token from Authorization header
+        token = self._extract_bearer_token(request)
         if not token:
-            return self._unauthorized_response("Token not provided")
+            return self._error_response("Missing authentication token", 401)
 
         try:
-            payload = self._validate_token(token)
-            request.state.user_id = payload.get('user_id')
-            request.state.user_claims = payload
+            # Decode and verify JWT token
+            payload = JwtToken.decode_token(token)
+
+            # Extract user_id and set it in request state
+            user_id_str = payload.get("user_id")
+            if not user_id_str:
+                return self._error_response("Invalid token: missing user_id", 401)
+
+            # Convert user_id to UUID and store in request state
+            request.state.user_id = UUID(user_id_str)
+            request.state.token_payload = payload
 
             return await call_next(request)
 
         except InvalidTokenError as e:
-            return self._unauthorized_response(f"Invalid token: {str(e)}")
+            return self._error_response(f"Invalid or expired token: {str(e)}", 401)
+        except ValueError:
+            return self._error_response("Invalid user_id format in token", 401)
+        except Exception as e:
+            return self._error_response(f"Authentication error: {str(e)}", 401)
 
-    def _is_public_endpoint(self, path: str) -> bool:
-        return any(path.startswith(endpoint) for endpoint in self.public_endpoints)
-
-    @staticmethod
-    def _extract_token(request: Request) -> Optional[str]:
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return None
-        return auth_header.split(" ")[1]
-
-    def _validate_token(self, token: str) -> dict:
-        return decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[settings.JWT_ALGORITHM]
-        )
+    def _is_public_path(self, path: str) -> bool:
+        """Check if the path is public (doesn't require authentication)"""
+        # Remove API prefix if exists
+        clean_path = path.replace("/api/v1", "")
+        return any(clean_path.startswith(public) for public in self.PUBLIC_PATHS)
 
     @staticmethod
-    def _unauthorized_response(message: str) -> JSONResponse:
+    def _extract_bearer_token(request: Request) -> Optional[str]:
+        """Extract Bearer token from Authorization header"""
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            return auth_header.split(" ", 1)[1]
+        return None
+
+    @staticmethod
+    def _error_response(message: str, status_code: int) -> JSONResponse:
+        """Return standardized error response"""
         return JSONResponse(
-            status_code=401,
+            status_code=status_code,
             content={
                 "success": False,
-                "error_code": ErrorCode.PERMISSION_DENIED.value,
-                "message": message
+                "message": message,
+                "error_code": status_code
             }
         )
 
 
-# Initialize middleware
+# Initialize middleware instance
 auth_middleware = AuthenticationMiddleware()

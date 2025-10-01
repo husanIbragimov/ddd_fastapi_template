@@ -12,4 +12,14 @@ COPY ../requirements.txt .
 COPY ../pyproject.toml .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
+# Copy entrypoint script
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 WORKDIR /app/src
+
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Default command (will be executed by entrypoint)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

@@ -16,7 +16,6 @@ def user_model_to_entity(user: models.UserModel) -> entity.UserEntity:
 
 def user_entity_to_model(user: entity.UserEntity) -> models.UserModel:
     return models.UserModel(
-        uuid=user.uuid,
         first_name=user.first_name,
         last_name=user.last_name,
         phone_number=user.phone_number,

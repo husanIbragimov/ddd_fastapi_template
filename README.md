@@ -7,7 +7,7 @@ Loyihan **Domain-Driven Design (DDD)** arxitekturasiga asoslangan bo'lib, quyida
 ```
 src/
 ├── application/    # Application Layer
-├── core/           # Shared Kernel
+├─�� core/           # Shared Kernel
 ├── di/             # Dependency Injection
 ├── domain/         # Domain Layer
 ├── infrastructure/ # Infrastructure Layer
@@ -265,3 +265,202 @@ tests/
 2. **Type Hints**: Har joyda ishlatilgan
 3. **API Documentation**: FastAPI auto-generated
 4. **Architecture Documentation**: Ushbu fayl
+
+---
+
+## 🛠️ Development Guide
+
+### Local Setup
+
+#### 1. Clone and Setup
+```bash
+git clone <repository-url>
+cd FinanceAI
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy environment file
+cp env/.env.example env/.env
+# Edit env/.env with your database credentials
+```
+
+#### 2. Database Setup
+```bash
+# Make sure PostgreSQL is running
+# Create database (if not exists)
+createdb finance_db
+
+# Run migrations
+python src/manage.py migrate
+```
+
+#### 3. Run Development Server
+```bash
+# From project root
+cd src
+python manage.py runserver
+
+# Or directly with uvicorn
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Docker Setup
+
+#### 1. Build and Run with Docker Compose
+```bash
+# From project root
+cd docker
+
+# Build and start containers
+docker-compose up --build
+
+# Run in detached mode
+docker-compose up -d
+
+# View logs
+docker-compose logs -f web
+
+# Stop containers
+docker-compose down
+```
+
+**Note**: Docker entrypoint automatically runs migrations on startup!
+
+### Migration Commands
+
+#### Create Migration
+```bash
+# From project root
+python src/manage.py makemigrations -m "description of changes"
+```
+
+#### Apply Migrations
+```bash
+# From project root
+python src/manage.py migrate
+```
+
+#### Manual Alembic (if needed)
+```bash
+cd src/infrastructure/persistence/migrations
+export PYTHONPATH=/path/to/project/src
+
+# Create migration
+alembic revision --autogenerate -m "description"
+
+# Apply migrations
+alembic upgrade head
+
+# Rollback
+alembic downgrade -1
+```
+
+### API Documentation
+
+Once the server is running:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **OpenAPI JSON**: http://localhost:8000/openapi.json
+
+### Health Check
+
+```bash
+curl http://localhost:8000/health
+```
+
+---
+
+## ⚙️ Architecture Improvements Applied
+
+### 1. **Session Management** ✅
+- `DatabaseSessionManager` - Singleton pattern for connection pool
+- `get_db()` dependency - Automatic session lifecycle management
+- Repositories use `flush()` instead of `commit()` - Controlled by FastAPI context
+
+### 2. **Memory Leak Prevention** ✅
+- Repositories are **NOT singleton** - New instance per request
+- Each request gets fresh `AsyncSession`
+- Session automatically closed after request (via `get_db()`)
+
+### 3. **Migration System** ✅
+- `manage.py` with proper working directory
+- Docker entrypoint auto-runs migrations
+- PYTHONPATH correctly set for imports
+
+### 4. **Error Handling** ✅
+- Global exception handler middleware
+- Structured logging with `structlog`
+- Layer-specific exceptions with proper HTTP status mapping
+- Detailed error responses with `ApiResponse`
+
+### 5. **Docker Optimization** ✅
+- Entrypoint script handles:
+  - PostgreSQL readiness check
+  - Automatic migration execution
+  - Application startup
+- Health check for PostgreSQL in docker-compose
+- Proper service dependency management
+
+---
+
+## 🐛 Troubleshooting
+
+### Migration Issues
+
+**Problem**: `ModuleNotFoundError` when running migrations
+```bash
+# Solution: Set PYTHONPATH
+export PYTHONPATH=/path/to/project/src
+# Or use manage.py which sets it automatically
+python src/manage.py migrate
+```
+
+**Problem**: Migrations not applied in Docker
+```bash
+# Check entrypoint logs
+docker-compose logs web
+
+# Manual migration in container
+docker exec -it finance_app bash
+cd /app/src/infrastructure/persistence/migrations
+export PYTHONPATH=/app/src
+alembic upgrade head
+```
+
+### Database Connection Issues
+
+**Problem**: Cannot connect to database
+```bash
+# Check PostgreSQL is running
+docker-compose ps
+
+# Check environment variables
+docker-compose exec web env | grep POSTGRES
+
+# Test connection
+docker-compose exec postgres psql -U postgres -d finance_db -c "SELECT 1"
+```
+
+### Memory Leak / Session Issues
+
+**Problem**: Too many database connections
+- Check that repositories are NOT singleton in `di/repository_module.py`
+- Ensure `get_db()` is used in FastAPI routes
+- Verify session is properly closed (should be automatic)
+
+---
+
+## 📖 Additional Resources
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [SQLAlchemy Async](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html)
+- [Alembic Tutorial](https://alembic.sqlalchemy.org/en/latest/tutorial.html)
+- [Injector Documentation](https://injector.readthedocs.io/)
+- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)

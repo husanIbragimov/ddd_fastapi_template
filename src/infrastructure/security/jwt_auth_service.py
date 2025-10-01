@@ -1,88 +1,89 @@
-import uuid
-from dataclasses import dataclass
 from datetime import timedelta, datetime, timezone
-from typing import Dict, Any
-from typing import Optional
+from typing import Dict, Any, Optional
 
 import bcrypt
 import jwt
-from passlib.context import CryptContext
 
 from core.settings import settings
 from domain.services.security import TokenService
-from infrastructure.errors import errors
-from utils.timezone import utcnow
-
-
-@dataclass
-class TokenPair:
-    access_token: str
-    refresh_token: str
-    token_type: str = "Bearer"
 
 
 class JwtToken(TokenService):
-    ALGORITHM = settings.JWT_ALGORITHM
-    SIGNING_KEY = settings.SECRET_KEY
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    ACCESS_TOKEN_EXPIRE = timedelta(minutes=30)
-    REFRESH_TOKEN_EXPIRE = timedelta(days=7)
+    """Simple and efficient JWT authentication service"""
 
-    def create_token_pair(self, payload: dict) -> TokenPair:
-        access = self.create_access_token(payload, self.ACCESS_TOKEN_EXPIRE)
-        refresh = self.create_refresh_token(payload, self.REFRESH_TOKEN_EXPIRE)
-        return TokenPair(access_token=access, refresh_token=refresh)
+    ALGORITHM = settings.JWT_ALGORITHM
+    SECRET_KEY = settings.SECRET_KEY
+    ACCESS_TOKEN_EXPIRE_MINUTES = 30
+    REFRESH_TOKEN_EXPIRE_DAYS = 7
+
+    @classmethod
+    def hash_password(cls, password: str) -> str:
+        """Hash a plain password using bcrypt"""
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
 
     @classmethod
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
+        """Verify a plain password against a hashed password"""
         try:
             return bcrypt.checkpw(
                 plain_password.encode('utf-8'),
                 hashed_password.encode('utf-8')
             )
-        except errors.VerificationError:
+        except Exception:
             return False
 
     @classmethod
-    def hash_password(cls, password: str) -> str:
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-        return hashed.decode('utf-8')
-
-
-    @classmethod
-    def encode(cls, payload: Dict[str, Any], expired=timedelta(minutes=10)) -> str:
-        payload["exp"]: datetime = (utcnow() + expired).timestamp()
-        payload["iat"]: float = utcnow().now().timestamp()
-        payload['jti']: str = str(uuid.uuid4())
-
-        return jwt.encode(payload, cls.SIGNING_KEY, algorithm=cls.ALGORITHM)
-
-    @classmethod
-    def decode(cls, token: str, verify: bool = True) -> Dict[str, Any] | None:
-        return jwt.decode(
-            token, cls.SIGNING_KEY, algorithms=[cls.ALGORITHM],
-            options={"verify_signature": verify}
-        )
-
-    @classmethod
     def create_access_token(cls, data: dict, expires_delta: Optional[timedelta] = None) -> str:
+        """Create a JWT access token"""
         to_encode = data.copy()
+
+        # Set expiration time
         if expires_delta:
             expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.now(timezone.utc) + cls.ACCESS_TOKEN_EXPIRE
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, cls.SIGNING_KEY, algorithm=cls.ALGORITHM)
+            expire = datetime.now(timezone.utc) + timedelta(minutes=cls.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+        to_encode["exp"] = expire
+        to_encode["iat"] = datetime.now(timezone.utc)
+
+        # Encode and return token
+        encoded_jwt = jwt.encode(to_encode, cls.SECRET_KEY, algorithm=cls.ALGORITHM)
         return encoded_jwt
 
     @classmethod
     def create_refresh_token(cls, data: dict, expires_delta: Optional[timedelta] = None) -> str:
+        """Create a JWT refresh token"""
         to_encode = data.copy()
+
+        # Set expiration time
         if expires_delta:
             expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.now(timezone.utc) + cls.REFRESH_TOKEN_EXPIRE
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, cls.SIGNING_KEY, algorithm=cls.ALGORITHM)
+            expire = datetime.now(timezone.utc) + timedelta(days=cls.REFRESH_TOKEN_EXPIRE_DAYS)
+
+        to_encode["exp"] = expire
+        to_encode["iat"] = datetime.now(timezone.utc)
+
+        # Encode and return token
+        encoded_jwt = jwt.encode(to_encode, cls.SECRET_KEY, algorithm=cls.ALGORITHM)
         return encoded_jwt
+
+    @classmethod
+    def decode_token(cls, token: str) -> Dict[str, Any]:
+        """Decode and verify a JWT token"""
+        return jwt.decode(
+            token,
+            cls.SECRET_KEY,
+            algorithms=[cls.ALGORITHM]
+        )
+
+    def create_token_pair(self, payload: dict) -> dict:
+        """Create a pair of access and refresh tokens"""
+        access_token = self.create_access_token(payload, timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES))
+        refresh_token = self.create_refresh_token(payload, timedelta(days=self.REFRESH_TOKEN_EXPIRE_DAYS))
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }

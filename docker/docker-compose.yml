@@ -5,9 +5,6 @@ services:
         context: ..
         dockerfile: docker/Dockerfile
     container_name: finance_app
-    command: >
-      /bin/sh -c "while ! nc -z postgres 5432; do sleep 1; done;
-                  uvicorn main:app --reload --host 0.0.0.0 --port 8000 --workers 4"
     ports:
       - "8000:8000"
     volumes:
@@ -16,7 +13,10 @@ services:
     env_file:
       - ../env/.env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    networks:
+      - shared_network
 
   postgres:
     image: postgres:17.0
@@ -27,7 +27,13 @@ services:
       - "5433:5432"
     volumes:
       - ./.volumes/pgdata:/var/lib/postgresql/data
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shared_network
 
 networks:
   shared_network:

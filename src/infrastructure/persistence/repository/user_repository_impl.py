@@ -37,6 +37,7 @@ class UserRepositoryImpl(BaseRepository[UserModel, UserEntity], UserRepository):
 
             stmt = select(UserModel).where(*criteria)
             result = await self.db.execute(stmt)
+            print("result", result)
             user = result.scalar_one_or_none()
             return user_model_to_entity(user) if user else None
         except Exception as e:
@@ -47,12 +48,18 @@ class UserRepositoryImpl(BaseRepository[UserModel, UserEntity], UserRepository):
             )
 
     async def save(self, user: UserEntity) -> UUID:
+        """
+        Save user entity and return the created user
+
+        IMPORTANT: Commit va rollback FastAPI dependency (get_db) tomonidan
+        avtomatik bajariladi. Bu yerda faqat flush qilamiz.
+        """
         try:
-            user_object = user_entity_to_model(user)
-            self.db.add(user_object)
+            user_model = user_entity_to_model(user)
+            self.db.add(user_model)
             await self.db.commit()
-            await self.db.refresh(user_object)
-            return user_object.uuid
+            await self.db.refresh(user_model)
+            return user_model.uuid
         except InfrastructureException:
             await self.db.rollback()
             raise
