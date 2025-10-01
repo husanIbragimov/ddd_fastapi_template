@@ -13,7 +13,7 @@ def cli() -> None:
 @click.option("-m", "--message", required=True, help="Migration message")
 def makemigrations(message: str) -> None:
     """Creates Alembic revision with autogenerate"""
-    migrations_path = os.path.join("infrastructure/persistence/migrations")
+    migrations_path = os.path.join("src/infrastructure/persistence/migrations")
     message = f"{utcnow().strftime('%Y%m%d_%H%M%S')}_{message}".replace(" ", "_")
     command = ["alembic", "revision", "--autogenerate", "-m", message]
 

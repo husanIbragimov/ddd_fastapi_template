@@ -22,8 +22,8 @@ class ProductModel(BaseModel):
 
     name: Mapped[Dict] = mapped_column(JSON, default=dict)
     description: Mapped[Dict] = mapped_column(JSON, default=dict)
-    price: Mapped[float] = mapped_column()
-    stock: Mapped[int] = mapped_column()
+    price: Mapped[float] = mapped_column(default=0.0)
+    stock: Mapped[int] = mapped_column(default=0)
 
     category_id: Mapped[str] = mapped_column(ForeignKey("categories.uuid", ondelete="CASCADE"))
     category: Mapped[CategoryModel] = relationship("CategoryModel", back_populates="products")
@@ -31,6 +31,7 @@ class ProductModel(BaseModel):
     tags: Mapped[List[TagModel]] = relationship("TagModel", secondary=product_tag, back_populates="products")
 
     images: Mapped[List[ProductImageModel]] = relationship("ProductImageModel", cascade="all, delete-orphan")
+
 
     def __repr__(self):
         return f"<ProductModel name={self.name} price={self.price} stock={self.stock}>"
