@@ -10,7 +10,7 @@ from presentation.middlewares import auth_middleware, handle_error_middleware
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """
     Application lifecycle manager
     - Startup: Database connection
@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     await startup_db()
     print("✅ Application started successfully")
 
-    yield  # Application ishlayapti
+    yield  # Application is running
 
     # Shutdown
     print("🛑 Shutting down application...")
@@ -43,8 +43,8 @@ app = FastAPI(
     ]
 )
 
-app.middleware("http")(auth_middleware)
 app.middleware("http")(handle_error_middleware)
+app.middleware("http")(auth_middleware)
 
 app.add_middleware(
     CORSMiddleware,

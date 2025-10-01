@@ -27,7 +27,7 @@ def makemigrations(message: str) -> None:
 @cli.command()
 def migrate() -> None:
     """Applies all Alembic migrations"""
-    migrations_path = os.path.join("infrastructure/persistence/migrations")
+    migrations_path = os.path.join("src/infrastructure/persistence/migrations")
     command = ["alembic", "upgrade", "head"]
 
     click.echo("🚀 Applying migrations...")
@@ -35,6 +35,18 @@ def migrate() -> None:
     subprocess.run(command, cwd=migrations_path)
 
     click.echo("✅ Migrations applied successfully!")
+
+
+@cli.command()
+def runserver() -> None:
+    """Runs the FastAPI development server"""
+    command = ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"]
+
+    click.echo("🚀 Starting FastAPI server...")
+
+    subprocess.run(command)
+
+    click.echo("✅ Server stopped.")
 
 if __name__ == "__main__":
     cli()
